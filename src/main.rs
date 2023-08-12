@@ -1,9 +1,16 @@
 use clap::Parser;
 
-use jottem::cli;
-use jottem::config;
+use jottem::cli::{Cli, Command};
 
-fn main() {
-    let _opts = cli::Cli::parse();
-    let _root = config::get_root();
+fn main() -> anyhow::Result<()> {
+    let cli = Cli::parse();
+
+    match cli.command {
+        Command::Edit { path, tags } => jottem::edit(&path, &tags),
+        Command::Delete { path } => jottem::delete(&path),
+        Command::Rebuild => jottem::rebuild(),
+        Command::Tag { subcommand } => jottem::tag(subcommand),
+    }
+
+    Ok(())
 }

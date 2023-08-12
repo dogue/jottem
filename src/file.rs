@@ -41,6 +41,13 @@ pub fn delete_file(note_path: &NotePath) -> anyhow::Result<()> {
     Ok(())
 }
 
+pub fn file_exists(note_path: &NotePath) -> bool {
+    let path = note_path.absolute_path_with_ext();
+    let path = Path::new(&path);
+
+    path.exists()
+}
+
 fn create_parent_path(note_path: &NotePath) -> anyhow::Result<()> {
     if !note_path.has_parent() {
         return Ok(());
