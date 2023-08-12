@@ -2,7 +2,7 @@ use std::path::Path;
 
 use rocksdb::{Options, DB};
 
-use crate::{config, note::Note};
+use crate::{config, note::Note, path::NotePath};
 
 pub struct Index {
     db: DB,
@@ -67,6 +67,19 @@ impl Index {
         }
 
         Ok(notes)
+    }
+
+    pub fn find(&self, path: &NotePath) -> anyhow::Result<Vec<Note>> {
+        let notes = self.get_all()?;
+        let mut matches = Vec::new();
+
+        for note in notes {
+            if note.title == path.title() {
+                matches.push(note);
+            }
+        }
+
+        Ok(matches)
     }
 
     pub fn add_tags(&self, id: u64, tags: &Vec<String>) -> anyhow::Result<()> {

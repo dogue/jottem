@@ -1,4 +1,4 @@
-use crate::config;
+use crate::{config, note::Note};
 
 #[derive(Debug)]
 pub struct NotePath {
@@ -26,6 +26,10 @@ impl NotePath {
         };
 
         Ok(Self { title, parent })
+    }
+
+    pub fn from_note(note: &Note) -> anyhow::Result<Self> {
+        Self::parse(&note.relative_path)
     }
 
     pub fn title(&self) -> String {

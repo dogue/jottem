@@ -8,7 +8,10 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.72"
 bincode = "1.3.3"
+chrono = "0.4.26"
 clap = { version = "4.3.21", features = ["derive"] }
+dialoguer = { version = "0.10.4", features = ["fuzzy-select"] }
 dirs = "5.0.1"
+lazy_static = "1.4.0"
 rocksdb = { version = "0.21.0", default-features = false }
 serde = { version = "1.0.183", features = ["derive"] }

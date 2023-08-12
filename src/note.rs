@@ -8,7 +8,8 @@ use crate::path::NotePath;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Note {
-    pub path: String,
+    pub absolute_path: String,
+    pub relative_path: String,
     pub title: String,
     pub created: String,
     pub modified: String,
@@ -16,12 +17,30 @@ pub struct Note {
 }
 
 impl Note {
-    pub fn new(path: &NotePath) -> Self {
-        todo!()
+    pub fn new(note_path: &NotePath, note_tags: &Vec<String>) -> Self {
+        let absolute_path = note_path.absolute_path_with_ext();
+        let relative_path = note_path.relative_path();
+        let title = note_path.title();
+        let created = chrono::offset::Local::now().to_string();
+        let modified = chrono::offset::Local::now().to_string();
+        let tags = HashSet::new();
+
+        let mut note = Self {
+            absolute_path,
+            relative_path,
+            title,
+            created,
+            modified,
+            tags,
+        };
+
+        note.add_tags(note_tags);
+
+        note
     }
 
     pub fn id(&self) -> u64 {
-        let id = self.path.clone();
+        let id = self.absolute_path.clone();
         let mut hasher = DefaultHasher::new();
         id.hash(&mut hasher);
         hasher.finish()
