@@ -49,10 +49,9 @@ impl Index {
             return Ok(None);
         }
 
-        let note = bincode::deserialize(&record.unwrap())
-            .map_err(|e| anyhow::anyhow!("Failed to deserialize database record: {e}"))?;
+        let note = Note::deserialize(&record.unwrap())?;
 
-        Ok(note)
+        Ok(Some(note))
     }
 
     pub fn get_all(&self) -> anyhow::Result<Vec<Note>> {
@@ -62,8 +61,8 @@ impl Index {
             let (_, value) =
                 record.map_err(|e| anyhow::anyhow!("Failed to database record: {e}"))?;
 
-            let note: Note = bincode::deserialize(&value)
-                .map_err(|e| anyhow::anyhow!("Failed to deserialize database record: {e}"))?;
+            let note = Note::deserialize(&value)?;
+
             notes.push(note);
         }
 

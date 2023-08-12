@@ -38,4 +38,11 @@ impl Note {
 
         Ok((id, serialized))
     }
+
+    pub fn deserialize(record: &[u8]) -> anyhow::Result<Self> {
+        let note = bincode::deserialize(record)
+            .map_err(|e| anyhow::anyhow!("Failed to deserialize note: {e}"))?;
+
+        Ok(note)
+    }
 }
