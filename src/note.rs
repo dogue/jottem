@@ -25,4 +25,17 @@ impl Note {
         id.hash(&mut hasher);
         hasher.finish()
     }
+
+    pub fn add_tag(&mut self, tag: &str) {
+        self.tags.push(tag.into())
+    }
+
+    pub fn serialize(self) -> anyhow::Result<(u64, Vec<u8>)> {
+        let id = self.id();
+        let serialized = bincode::serialize(&self)
+            .map_err(|e| anyhow::anyhow!("Failed to serialize note: {e}"))?
+            .to_vec();
+
+        Ok((id, serialized))
+    }
 }

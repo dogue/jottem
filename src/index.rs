@@ -22,9 +22,7 @@ impl Index {
     }
 
     pub fn insert(&self, note: &Note) -> anyhow::Result<()> {
-        let id = note.id();
-        let note = bincode::serialize(&note)
-            .map_err(|e| anyhow::anyhow!("Failed to serialize note: {e}"))?;
+        let (id, note) = note.serialize()?;
 
         self.db
             .put(id.to_le_bytes(), note)
