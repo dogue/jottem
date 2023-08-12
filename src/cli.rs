@@ -9,10 +9,25 @@ pub struct Cli {
 #[derive(Debug, Subcommand)]
 pub enum Command {
     #[clap(name = "edit", alias = "e", about = "[e]dit or create a note")]
-    Edit { path: String },
+    Edit {
+        #[arg(help = "note title or relative path")]
+        path: String,
+
+        #[arg(
+            short,
+            long,
+            required = false,
+            value_delimiter = ',',
+            help = "a list of tags to add to the note"
+        )]
+        tags: Vec<String>,
+    },
 
     #[clap(name = "delete", alias = "d", about = "[d]elete a note")]
-    Delete { path: String },
+    Delete {
+        #[arg(help = "note title or relative path")]
+        path: String,
+    },
 
     #[clap(name = "rebuild", alias = "r", about = "[r]ebuild the notes index")]
     Rebuild,
@@ -26,6 +41,21 @@ pub enum Command {
 
 #[derive(Debug, Subcommand)]
 pub enum TagCommand {
-    Add,
-    Remove,
+    #[command(about = "add tags to an existing note")]
+    Add {
+        #[arg(help = "note title or relative path")]
+        path: String,
+
+        #[arg(help = "list of tags to add", value_delimiter = ',')]
+        tags: Vec<String>,
+    },
+
+    #[command(about = "remove tags from an existing note")]
+    Remove {
+        #[arg(help = "note title or relative path")]
+        path: String,
+
+        #[arg(help = "list of tags to remove", value_delimiter = ',')]
+        tags: Vec<String>,
+    },
 }
