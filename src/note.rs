@@ -1,4 +1,5 @@
 use std::collections::hash_map::DefaultHasher;
+use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 
 use serde::{Deserialize, Serialize};
@@ -11,7 +12,7 @@ pub struct Note {
     pub title: String,
     pub created: String,
     pub modified: String,
-    pub tags: Vec<String>,
+    pub tags: HashSet<String>,
 }
 
 impl Note {
@@ -26,8 +27,14 @@ impl Note {
         hasher.finish()
     }
 
-    pub fn add_tag(&mut self, tag: &str) {
-        self.tags.push(tag.into())
+    pub fn add_tags(&mut self, tags: &Vec<String>) {
+        for tag in tags {
+            self.tags.insert(tag.to_owned());
+        }
+    }
+
+    pub fn remove_tags(&mut self, tags: &Vec<String>) {
+        self.tags.retain(|tag| !tags.contains(tag));
     }
 
     pub fn serialize(self) -> anyhow::Result<(u64, Vec<u8>)> {

@@ -21,7 +21,7 @@ impl Index {
         Ok(Self { db })
     }
 
-    pub fn insert(&self, note: &Note) -> anyhow::Result<()> {
+    pub fn insert(&self, note: Note) -> anyhow::Result<()> {
         let (id, note) = note.serialize()?;
 
         self.db
@@ -67,5 +67,23 @@ impl Index {
         }
 
         Ok(notes)
+    }
+
+    pub fn add_tags(&self, id: u64, tags: &Vec<String>) -> anyhow::Result<()> {
+        if let Some(mut note) = self.get(id)? {
+            note.add_tags(tags);
+            self.insert(note)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn remove_tags(&self, id: u64, tags: &Vec<String>) -> anyhow::Result<()> {
+        if let Some(mut note) = self.get(id)? {
+            note.remove_tags(tags);
+            self.insert(note)?;
+        }
+
+        Ok(())
     }
 }
