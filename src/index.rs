@@ -59,7 +59,7 @@ impl Index {
 
         for record in self.db.iterator(rocksdb::IteratorMode::Start) {
             let (_, value) =
-                record.map_err(|e| anyhow::anyhow!("Failed to database record: {e}"))?;
+                record.map_err(|e| anyhow::anyhow!("Failed to read database record: {e}"))?;
 
             let note = Note::deserialize(&value)?;
 
