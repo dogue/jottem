@@ -52,7 +52,7 @@ impl Note {
         }
     }
 
-    pub fn remove_tags(&mut self, tags: &Vec<String>) {
+    pub fn remove_tags(&mut self, tags: &[String]) {
         self.tags.retain(|tag| !tags.contains(tag));
     }
 

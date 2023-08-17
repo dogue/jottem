@@ -15,7 +15,7 @@ impl Index {
         let mut options = Options::default();
         options.create_if_missing(true);
 
-        let db = DB::open(&options, &db_path)
+        let db = DB::open(&options, db_path)
             .map_err(|e| anyhow::anyhow!("Failed to open database: {e}"))?;
 
         Ok(Self { db })
@@ -94,7 +94,7 @@ impl Index {
         Ok(())
     }
 
-    pub fn remove_tags(&self, id: u64, tags: &Vec<String>) -> anyhow::Result<()> {
+    pub fn remove_tags(&self, id: u64, tags: &[String]) -> anyhow::Result<()> {
         if let Some(mut note) = self.get(id)? {
             note.remove_tags(tags);
             self.insert(note)?;

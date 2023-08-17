@@ -45,11 +45,8 @@ impl NotePath {
     }
 
     pub fn absolute_parent(&self) -> Option<String> {
-        if let Some(path) = self.relative_parent() {
-            Some(format!("{}/{}", config::get_root(), path))
-        } else {
-            None
-        }
+        self.relative_parent()
+            .map(|path| format!("{}/{}", config::get_root(), path))
     }
 
     pub fn relative_path(&self) -> String {

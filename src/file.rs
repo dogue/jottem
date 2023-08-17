@@ -7,7 +7,7 @@ pub fn create_file(note_path: &NotePath) -> anyhow::Result<()> {
     let path = Path::new(&path);
 
     if note_path.has_parent() {
-        create_parent_path(&note_path)?;
+        create_parent_path(note_path)?;
     }
 
     OpenOptions::new()
