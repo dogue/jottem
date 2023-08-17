@@ -8,8 +8,8 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    #[clap(name = "edit", alias = "e", about = "[e]dit or create a note")]
-    Edit {
+    #[clap(name = "create", alias = "c", about = "[c]reate a new note")]
+    Create {
         #[arg(help = "note title or relative path")]
         path: String,
 
@@ -21,6 +21,12 @@ pub enum Command {
             help = "a list of tags to add to the note"
         )]
         tags: Vec<String>,
+    },
+
+    #[clap(name = "edit", alias = "e", about = "[e]dit a note")]
+    Edit {
+        #[arg(help = "note title or relative path")]
+        path: String,
     },
 
     #[clap(name = "delete", alias = "d", about = "[d]elete a note")]

@@ -1,4 +1,4 @@
-use dialoguer::Select;
+use dialoguer::{theme::ColorfulTheme, Confirm, Select};
 use file::delete_file;
 use index::Index;
 use lazy_static::lazy_static;
@@ -16,35 +16,21 @@ lazy_static! {
     static ref INDEX: Index = Index::open().unwrap();
 }
 
-pub fn edit(path: &str, tags: &Vec<String>) -> anyhow::Result<()> {
+pub fn edit(path: &str) -> anyhow::Result<()> {
     let path = NotePath::parse(path)?;
 
-    let matches = INDEX
-        .find(&path)?
-        .into_iter()
-        .filter(|n| n.relative_path == path.relative_path())
-        .collect::<Vec<Note>>();
+    let matches = {
+        if path.has_parent() {
+            INDEX.find_by_path(&path)?
+        } else {
+            INDEX.find_by_title(&path.title())?
+        }
+    };
 
     let note = match matches.len() {
-        0 => create(&path, tags)?,
+        0 => prompt_no_matches(&path)?,
         1 => matches[0].clone(),
-        _ => {
-            let mut selections: Vec<String> =
-                matches.iter().map(|n| n.relative_path.clone()).collect();
-            selections.push("create new".into());
-            let selection = Select::new()
-                .with_prompt("Multiple matches found. Please choose one")
-                .default(0)
-                .items(&selections)
-                .interact()
-                .unwrap();
-
-            if selection < matches.len() {
-                matches[selection].clone()
-            } else {
-                create(&path, tags)?
-            }
-        }
+        _ => prompt_multiple_matches(&matches)?,
     };
 
     open(&note.absolute_path)?;
@@ -55,11 +41,11 @@ pub fn edit(path: &str, tags: &Vec<String>) -> anyhow::Result<()> {
 pub fn delete(path: &str) -> anyhow::Result<()> {
     let path = NotePath::parse(path)?;
 
-    let matches = INDEX.find(&path)?;
+    let matches = INDEX.find_by_title(&path.title())?;
 
     let note = match matches.len() {
         1 => matches[0].clone(),
-        _ => select(&matches)?,
+        _ => prompt_multiple_matches(&matches)?,
     };
 
     INDEX.remove(note.id())?;
@@ -76,16 +62,16 @@ pub fn tag(_command: cli::TagCommand) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn create(path: &NotePath, tags: &Vec<String>) -> anyhow::Result<Note> {
+pub fn create(path: &NotePath, tags: &Vec<String>) -> anyhow::Result<Note> {
     let note = Note::new(path, tags);
-    INDEX.insert(note.clone())?;
 
     file::create_file(path)?;
+    INDEX.insert(note.clone())?;
 
     Ok(note)
 }
 
-fn open(path: &str) -> anyhow::Result<()> {
+pub fn open(path: &str) -> anyhow::Result<()> {
     let editor = config::get_editor();
 
     std::process::Command::new(editor).arg(path).status()?;
@@ -93,18 +79,31 @@ fn open(path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn select(matches: &Vec<Note>) -> anyhow::Result<Note> {
+fn prompt_multiple_matches(matches: &Vec<Note>) -> anyhow::Result<Note> {
     let mut selections = Vec::new();
     for note in matches {
         selections.push(&note.relative_path);
     }
 
-    let selection = Select::new()
-        .with_prompt("Multiple matches found. Please choose one")
+    let selection = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("Multiple notes found. Please choose one")
         .default(0)
         .items(&selections)
         .interact()
         .unwrap();
 
     Ok(matches[selection].clone())
+}
+
+fn prompt_no_matches(path: &NotePath) -> anyhow::Result<Note> {
+    if Confirm::with_theme(&ColorfulTheme::default())
+        .with_prompt("No note found with that name. Would you like to create it now?")
+        .default(true)
+        .interact()?
+    {
+        let tags: Vec<String> = Vec::new();
+        create(path, &tags)
+    } else {
+        std::process::exit(0);
+    }
 }

@@ -69,17 +69,20 @@ impl Index {
         Ok(notes)
     }
 
-    pub fn find(&self, path: &NotePath) -> anyhow::Result<Vec<Note>> {
-        let notes = self.get_all()?;
-        let mut matches = Vec::new();
+    pub fn find_by_title(&self, title: &str) -> anyhow::Result<Vec<Note>> {
+        Ok(self
+            .get_all()?
+            .into_iter()
+            .filter(|note| note.title == title)
+            .collect())
+    }
 
-        for note in notes {
-            if note.title == path.title() {
-                matches.push(note);
-            }
-        }
-
-        Ok(matches)
+    pub fn find_by_path(&self, path: &NotePath) -> anyhow::Result<Vec<Note>> {
+        Ok(self
+            .get_all()?
+            .into_iter()
+            .filter(|note| note.relative_path == path.relative_path())
+            .collect())
     }
 
     pub fn add_tags(&self, id: u64, tags: &Vec<String>) -> anyhow::Result<()> {
