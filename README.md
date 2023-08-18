@@ -72,7 +72,7 @@ Jottem's configuration is very simple and consists of two environment variables:
 
 `$JOTTEM_ROOT` specifies the root folder under which all of your note files will live. This defaults to `$HOME/.local/share/jottem` if not set.
 
-`$JOTTEM_DB_PATH` specified where the index database should be stored on disk. This defaults to `$HOME/.cache/jottem` if not set.
+`$JOTTEM_DB_PATH` specifies where the index database should be stored on disk. This defaults to `$HOME/.cache/jottem` if not set.
 
 ## License
 
