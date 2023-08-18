@@ -8,7 +8,7 @@ Jottem is the note manager I wished already existed. It is a simple and lightwei
 
 Jottem keeps your files in a folder known as the `$JOTTEM_ROOT` (see the Configuration section below). It also keeps an index (using RocksDB) of your notes for fast access (retrieving an absolute path rather than walking directories). A search function is planned but is not implemented at this time. Jottem uses your `$EDITOR` variable to open notes.
 
-*Please note that as of the time of this writing, you are looking at a very early version of jottem. There are still features to come and some existing ones may not be full fleshed out at this point. I will do my best to keep this readme up to date as development progresses.*
+*Please note that as of the time of this writing, you are looking at a very early version of jottem. There are still features to come and some existing ones may not be fully fleshed out at this point. I will do my best to keep this readme up to date as development progresses.*
 
 ## Installation
 
@@ -64,7 +64,7 @@ This command follows the same behavior as the edit command in regards to titles 
 
 #### Future commands
 
-Jottem currently displays a `rebuild` command and a `tag` command. The tag command is not yet implemented. Tags can be added using the `-t` flag when creating a note, but are not yet fully implemented (no search yet). The rebuild command is not yet implemented but will be used later for rebuilding the index should decide to move your root folder or otherwise need to resync the index with the note files on disk.
+Jottem currently displays a `rebuild` command and a `tag` command. The tag command is not yet implemented. Tags can be added using the `-t` flag when creating a note, but are not yet fully implemented (no search yet). The rebuild command is not yet implemented but will be used later for rebuilding the index should you decide to move your root folder or otherwise need to resync the index with the note files on disk.
 
 ## Configuration
 
