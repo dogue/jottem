@@ -12,7 +12,6 @@ fn main() -> anyhow::Result<()> {
         Command::Create { path, tags } => {
             let path = NotePath::parse(&path)?;
             let note = jottem::create(&path, &tags)?;
-            println!("{note:?}");
             jottem::open(&note.absolute_path)?;
         }
         Command::Edit { path } => jottem::edit(&path)?,
