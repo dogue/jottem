@@ -107,3 +107,21 @@ fn prompt_no_matches(path: &NotePath) -> anyhow::Result<Note> {
         std::process::exit(0);
     }
 }
+
+#[cfg(feature = "nuke")]
+pub fn nuke() -> anyhow::Result<()> {
+    if !Confirm::with_theme(&ColorfulTheme::default())
+        .with_prompt("THIS WILL DELETE ALL YOUR NOTES. ARE YOU SURE? THERE IS NO UNDO")
+        .default(false)
+        .wait_for_newline(true)
+        .interact()?
+    {
+        std::process::exit(0);
+    }
+
+    std::fs::remove_dir_all(config::get_root())?;
+    std::fs::remove_dir_all(config::get_db_path())?;
+    std::fs::create_dir(config::get_root())?;
+
+    Ok(())
+}

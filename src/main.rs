@@ -18,6 +18,9 @@ fn main() -> anyhow::Result<()> {
         Command::Delete { path } => jottem::delete(&path)?,
         Command::Rebuild => jottem::rebuild()?,
         Command::Tag { subcommand } => jottem::tag(subcommand)?,
+
+        #[cfg(feature = "nuke")]
+        Command::Nuke => jottem::nuke()?,
     };
 
     Ok(())

@@ -43,6 +43,13 @@ pub enum Command {
         #[clap(subcommand)]
         subcommand: TagCommand,
     },
+
+    #[cfg(feature = "nuke")]
+    #[clap(
+        name = "nuke",
+        about = "removes all notes and the index (intended for development)"
+    )]
+    Nuke,
 }
 
 #[derive(Debug, Subcommand)]
