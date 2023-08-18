@@ -33,7 +33,7 @@ impl Index {
 
     pub fn remove(&self, id: u64) -> anyhow::Result<()> {
         self.db
-            .delete(id.to_be_bytes())
+            .delete(id.to_le_bytes())
             .map_err(|e| anyhow::anyhow!("Failed to remove note from the index: {e}"))?;
 
         Ok(())
