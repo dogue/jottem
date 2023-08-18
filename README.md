@@ -62,9 +62,9 @@ jottem d my_note
 
 This command follows the same behavior as the edit command in regards to titles that match multiple notes.
 
-#### Other commands
+#### Future commands
 
-Jottem currently displays a `rebuild` command and a `tag` command. The tag command works but tags are not yet fully implemented (no search yet). The rebuild command is not yet implemented but will be used later for rebuilding the index should decide to move your root folder or otherwise need to resync the index with the note files on disk.
+Jottem currently displays a `rebuild` command and a `tag` command. The tag command is not yet implemented. Tags can be added using the `-t` flag when creating a note, but are not yet fully implemented (no search yet). The rebuild command is not yet implemented but will be used later for rebuilding the index should decide to move your root folder or otherwise need to resync the index with the note files on disk.
 
 ## Configuration
 
