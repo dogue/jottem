@@ -35,14 +35,21 @@ pub enum Command {
         path: String,
     },
 
-    #[clap(name = "rebuild", alias = "r", about = "[r]ebuild the notes index")]
-    Rebuild,
-
     #[clap(name = "tag", alias = "t", about = "[t]ag management")]
     Tag {
         #[clap(subcommand)]
         subcommand: TagCommand,
     },
+
+    #[clap(name = "rebuild", alias = "r", about = "[r]ebuild the notes index")]
+    Rebuild,
+
+    #[clap(
+        name = "export",
+        alias = "x",
+        about = "e[x]port the notes index as JSON"
+    )]
+    Export,
 
     #[cfg(feature = "nuke")]
     #[clap(

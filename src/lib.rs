@@ -35,6 +35,10 @@ pub fn edit(path: &str) -> anyhow::Result<()> {
 
     open(&note.absolute_path)?;
 
+    let mut note = INDEX.get(note.id())?.unwrap();
+    note.modified = chrono::offset::Local::now().to_string();
+    INDEX.insert(note)?;
+
     Ok(())
 }
 
@@ -54,11 +58,20 @@ pub fn delete(path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
+pub fn tag(_command: cli::TagCommand) -> anyhow::Result<()> {
+    Ok(())
+}
+
 pub fn rebuild() -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn tag(_command: cli::TagCommand) -> anyhow::Result<()> {
+pub fn export() -> anyhow::Result<()> {
+    let notes = INDEX.get_all()?;
+    let export = serde_json::to_string(&notes)?;
+
+    println!("{export}");
+
     Ok(())
 }
 
@@ -106,6 +119,12 @@ fn prompt_no_matches(path: &NotePath) -> anyhow::Result<Note> {
     } else {
         std::process::exit(0);
     }
+}
+
+pub fn create_root_dir() -> anyhow::Result<()> {
+    std::fs::create_dir_all(config::get_root())?;
+
+    Ok(())
 }
 
 #[cfg(feature = "nuke")]

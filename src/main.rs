@@ -8,6 +8,8 @@ use jottem::{
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
+    jottem::create_root_dir()?;
+
     match cli.command {
         Command::Create { path, tags } => {
             let path = NotePath::parse(&path)?;
@@ -16,8 +18,9 @@ fn main() -> anyhow::Result<()> {
         }
         Command::Edit { path } => jottem::edit(&path)?,
         Command::Delete { path } => jottem::delete(&path)?,
-        Command::Rebuild => jottem::rebuild()?,
         Command::Tag { subcommand } => jottem::tag(subcommand)?,
+        Command::Rebuild => jottem::rebuild()?,
+        Command::Export => jottem::export()?,
 
         #[cfg(feature = "nuke")]
         Command::Nuke => jottem::nuke()?,
