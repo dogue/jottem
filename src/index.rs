@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{collections::HashSet, path::Path};
 
 use rocksdb::{Options, DB};
 
@@ -82,6 +82,16 @@ impl Index {
             .get_all()?
             .into_iter()
             .filter(|note| note.relative_path == path.relative_path())
+            .collect())
+    }
+
+    pub fn find_by_tags(&self, tags: &Vec<String>) -> anyhow::Result<Vec<Note>> {
+        let tags: HashSet<_> = tags.into_iter().collect();
+
+        Ok(self
+            .get_all()?
+            .into_iter()
+            .filter(|n| n.tags.iter().any(|s| tags.contains(s)))
             .collect())
     }
 

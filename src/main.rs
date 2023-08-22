@@ -17,6 +17,7 @@ fn main() -> anyhow::Result<()> {
             jottem::open(&note.absolute_path)?;
         }
         Command::Edit { path } => jottem::edit(&path)?,
+        Command::Find { args } => jottem::find(&args)?,
         Command::Delete { path } => jottem::delete(&path)?,
         Command::Tag { subcommand } => jottem::tag(subcommand)?,
         Command::Rebuild => jottem::rebuild()?,

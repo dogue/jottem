@@ -1,3 +1,4 @@
+use cli::SearchArgs;
 use dialoguer::{theme::ColorfulTheme, Confirm, Select};
 use file::delete_file;
 use index::Index;
@@ -38,6 +39,18 @@ pub fn edit(path: &str) -> anyhow::Result<()> {
     let mut note = INDEX.get(note.id())?.unwrap();
     note.modified = chrono::offset::Local::now().to_string();
     INDEX.insert(note)?;
+
+    Ok(())
+}
+
+pub fn find(args: &SearchArgs) -> anyhow::Result<()> {
+    if args.tags.len() > 0 {
+        println!("{:?}", INDEX.find_by_tags(&args.tags)?);
+    }
+
+    if let Some(path) = args.path.clone() {
+        println!("{:?}", INDEX.find_by_title(&path)?);
+    }
 
     Ok(())
 }

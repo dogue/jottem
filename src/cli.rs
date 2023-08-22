@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{command, Args, Parser, Subcommand};
 
 #[derive(Debug, Parser)]
 pub struct Cli {
@@ -27,6 +27,12 @@ pub enum Command {
     Edit {
         #[arg(help = "note title or relative path")]
         path: String,
+    },
+
+    #[clap(name = "find", alias = "f", about = "[f]ind a note")]
+    Find {
+        #[command(flatten)]
+        args: SearchArgs,
     },
 
     #[clap(name = "delete", alias = "d", about = "[d]elete a note")]
@@ -78,4 +84,14 @@ pub enum TagCommand {
         #[arg(help = "list of tags to remove", value_delimiter = ',')]
         tags: Vec<String>,
     },
+}
+
+#[derive(Debug, Clone, Args)]
+#[group(required = true, multiple = false)]
+pub struct SearchArgs {
+    #[arg(short, long)]
+    pub path: Option<String>,
+
+    #[arg(short, long, value_delimiter = ',')]
+    pub tags: Vec<String>,
 }
