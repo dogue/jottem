@@ -1,6 +1,7 @@
 use std::collections::hash_map::DefaultHasher;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
+use std::ops::AddAssign;
 
 use serde::{Deserialize, Serialize};
 
@@ -21,8 +22,8 @@ impl Note {
         let absolute_path = note_path.absolute_path_with_ext();
         let relative_path = note_path.relative_path();
         let title = note_path.title();
-        let created = chrono::offset::Local::now().to_string();
-        let modified = chrono::offset::Local::now().to_string();
+        let created = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        let modified = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         let tags = HashSet::new();
 
         let mut note = Self {

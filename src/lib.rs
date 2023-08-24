@@ -1,3 +1,5 @@
+use std::path::{Path, PathBuf};
+
 use cli::{SearchArgs, TagCommand};
 use colored::*;
 use dialoguer::{theme::ColorfulTheme, Confirm, Select};
@@ -30,7 +32,7 @@ pub fn edit(path: &str) -> anyhow::Result<()> {
     open(&note.absolute_path)?;
 
     let mut note = INDEX.get(note.id())?.unwrap();
-    note.modified = chrono::offset::Local::now().to_string();
+    note.modified = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
     INDEX.insert(note)?;
 
     Ok(())
