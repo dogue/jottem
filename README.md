@@ -54,7 +54,7 @@ This will open the note in your editor if it exists.
 
 ### Finding notes
 
-You can search for notes using the `find` (alias `f`) subcommand like so:
+You can search for notes using the `find` (alias `f`) command like so:
 
 Search by note title/path
 ```
@@ -78,9 +78,23 @@ jottem d my_note
 
 This command follows the same behavior as the edit command in regards to titles that match multiple notes.
 
+### Tag management
+
+In addition to adding tags when creating a new note, you can manage tags on existing notes using the `tag` (alias `t`) command like so:
+
+Add tag(s)
+```
+jottem t add some_note list,of,tags
+```
+
+Remove tag(s)
+```
+jottem t remove some_note list,of,tags
+```
+
 ### Future commands
 
-Jottem currently displays a `rebuild` command and a `tag` command. The tag command is not yet implemented. Tags can be added using the `-t` flag when creating a note, but are not yet fully implemented (~~no search yet~~). The rebuild command is not yet implemented but will be used later for rebuilding the index should you decide to move your root folder or otherwise need to resync the index with the note files on disk.
+Jottem currently displays a `rebuild` command. The rebuild command is not yet implemented but will be used later for rebuilding the index should you decide to move your root folder or otherwise need to resync the index with the note files on disk.
 
 ## Configuration
 
