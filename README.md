@@ -30,7 +30,7 @@ For example, if you create a new note and specify the title as `foo/bar/baz`, Jo
 
 When attempting to edit a note, you can give the relative path or just the title. If the title doesn't match any known notes, Jottem will ask if you want to create a new one with that title/path. If the title matches exactly one note, that note will be opened in your editor. If the title matches multiple known notes, Jottem will provide you with a list to select one.
 
-#### Creating a new note
+### Creating a new note
 
 You can create a new note using the `create` (alias `c`) command like so:
 
@@ -40,7 +40,7 @@ jottem c my_note
 
 *Jottem does not care what characters you use in your note titles/paths except that it will trim leading and trailing slashes. Otherwise, Linux filesystem rules are the only rules.*
 
-#### Editing an existing note
+### Editing an existing note
 
 You can edit an existing note using the `edit` (alias `e`) command like so:
 
@@ -52,7 +52,7 @@ This will open the note in your editor if it exists.
 
 *See Usage above for details on how the edit command handles non-existent notes.*
 
-#### Finding notes
+### Finding notes
 
 You can search for notes using the `find` (alias `f`) subcommand like so:
 
@@ -68,7 +68,7 @@ jottem f -t a_tag,another_tag
 
 Jottem's tag search is currently very greedy, meaning it will return all notes that match *any* of the provided tags.
 
-#### Deleting a note
+### Deleting a note
 
 You can delete a note using the `delete` (alias `d`) command like so:
 
@@ -78,7 +78,7 @@ jottem d my_note
 
 This command follows the same behavior as the edit command in regards to titles that match multiple notes.
 
-#### Future commands
+### Future commands
 
 Jottem currently displays a `rebuild` command and a `tag` command. The tag command is not yet implemented. Tags can be added using the `-t` flag when creating a note, but are not yet fully implemented (~~no search yet~~). The rebuild command is not yet implemented but will be used later for rebuilding the index should you decide to move your root folder or otherwise need to resync the index with the note files on disk.
 
