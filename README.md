@@ -52,6 +52,22 @@ This will open the note in your editor if it exists.
 
 *See Usage above for details on how the edit command handles non-existent notes.*
 
+#### Finding notes
+
+You can search for notes using the `find` (alias `f`) subcommand like so:
+
+Search by note title/path
+```
+jottem f -p note_title
+```
+
+Search by tags
+```
+jottem f -t a_tag,another_tag
+```
+
+Jottem's tag search is currently very greedy, meaning it will return all notes that match *any* of the provided tags.
+
 #### Deleting a note
 
 You can delete a note using the `delete` (alias `d`) command like so:
@@ -64,7 +80,7 @@ This command follows the same behavior as the edit command in regards to titles 
 
 #### Future commands
 
-Jottem currently displays a `rebuild` command and a `tag` command. The tag command is not yet implemented. Tags can be added using the `-t` flag when creating a note, but are not yet fully implemented (no search yet). The rebuild command is not yet implemented but will be used later for rebuilding the index should you decide to move your root folder or otherwise need to resync the index with the note files on disk.
+Jottem currently displays a `rebuild` command and a `tag` command. The tag command is not yet implemented. Tags can be added using the `-t` flag when creating a note, but are not yet fully implemented (~~no search yet~~). The rebuild command is not yet implemented but will be used later for rebuilding the index should you decide to move your root folder or otherwise need to resync the index with the note files on disk.
 
 ## Configuration
 
