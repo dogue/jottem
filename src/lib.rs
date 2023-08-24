@@ -1,3 +1,4 @@
+use clap::Id;
 use cli::SearchArgs;
 use colored::*;
 use comfy_table::{presets::UTF8_FULL, ContentArrangement, Table};
@@ -48,7 +49,13 @@ pub fn edit(path: &str) -> anyhow::Result<()> {
 pub fn find(args: &SearchArgs) -> anyhow::Result<()> {
     let notes = {
         if let Some(path) = args.path.clone() {
-            INDEX.find_by_title(&path)?
+            let path = NotePath::parse(&path)?;
+
+            if path.has_parent() {
+                INDEX.find_by_path(&path)?
+            } else {
+                INDEX.find_by_title(&path.title())?
+            }
         } else if args.tags.len() > 0 {
             INDEX.find_by_tags(&args.tags)?
         } else {
