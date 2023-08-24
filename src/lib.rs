@@ -1,4 +1,6 @@
 use cli::SearchArgs;
+use colored::*;
+use comfy_table::{presets::UTF8_FULL, ContentArrangement, Table};
 use dialoguer::{theme::ColorfulTheme, Confirm, Select};
 use file::delete_file;
 use index::Index;
@@ -44,13 +46,19 @@ pub fn edit(path: &str) -> anyhow::Result<()> {
 }
 
 pub fn find(args: &SearchArgs) -> anyhow::Result<()> {
-    if args.tags.len() > 0 {
-        println!("{:?}", INDEX.find_by_tags(&args.tags)?);
-    }
+    let notes = {
+        if let Some(path) = args.path.clone() {
+            INDEX.find_by_title(&path)?
+        } else if args.tags.len() > 0 {
+            INDEX.find_by_tags(&args.tags)?
+        } else {
+            Vec::new()
+        }
+    };
 
-    if let Some(path) = args.path.clone() {
-        println!("{:?}", INDEX.find_by_title(&path)?);
-    }
+    let table = build_table(notes);
+
+    println!("{table}");
 
     Ok(())
 }
@@ -138,6 +146,69 @@ pub fn create_root_dir() -> anyhow::Result<()> {
     std::fs::create_dir_all(config::get_root())?;
 
     Ok(())
+}
+
+// Uses the comfy-table crate
+// keeping it here for now but I didn't like the output - too busy
+/*fn build_table(notes: Vec<Note>) -> Table {
+    let mut table = Table::new();
+    table
+        .load_preset(UTF8_FULL)
+        .set_content_arrangement(ContentArrangement::Disabled)
+        .set_width(40)
+        .set_header(vec!["Relative Path", "Modified Time"]);
+
+    for note in notes {
+        table.add_row(vec![note.relative_path, note.modified]);
+    }
+
+    table
+}
+
+// First alternative to the comfy-table version
+// isn't dynamic
+fn build_table_alt(notes: Vec<Note>) -> String {
+    let mut table = String::new();
+
+    table.push_str("Relative Path\t\tModified Time\n");
+
+    for note in notes {
+        table.push_str(&format!("{}\t\t{}\n", note.relative_path, note.modified));
+    }
+
+    table.trim_end().to_string()
+}*/
+
+fn build_table(notes: Vec<Note>) -> String {
+    let mut table = String::new();
+
+    let max_len = notes
+        .iter()
+        .map(|n| n.relative_path.len())
+        .max()
+        .unwrap_or(0)
+        + 4;
+
+    table.push_str(
+        &format!(
+            "{:<width$}{}\n",
+            "Relative Path".cyan().bold(),
+            "Modified Time".cyan().bold(),
+            width = max_len
+        )
+        .cyan(),
+    );
+
+    for note in notes {
+        table.push_str(&format!(
+            "{:<width$}{}\n",
+            note.relative_path,
+            note.modified,
+            width = max_len
+        ));
+    }
+
+    table.trim_end().to_string()
 }
 
 #[cfg(feature = "nuke")]
