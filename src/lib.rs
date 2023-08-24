@@ -1,7 +1,5 @@
-use clap::Id;
-use cli::SearchArgs;
+use cli::{SearchArgs, TagCommand};
 use colored::*;
-use comfy_table::{presets::UTF8_FULL, ContentArrangement, Table};
 use dialoguer::{theme::ColorfulTheme, Confirm, Select};
 use file::delete_file;
 use index::Index;
@@ -21,15 +19,7 @@ lazy_static! {
 }
 
 pub fn edit(path: &str) -> anyhow::Result<()> {
-    let path = NotePath::parse(path)?;
-
-    let matches = {
-        if path.has_parent() {
-            INDEX.find_by_path(&path)?
-        } else {
-            INDEX.find_by_title(&path.title())?
-        }
-    };
+    let matches = retrieve_matches(path)?;
 
     let note = match matches.len() {
         0 => prompt_no_matches(&path)?,
@@ -86,7 +76,47 @@ pub fn delete(path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn tag(_command: cli::TagCommand) -> anyhow::Result<()> {
+pub fn tag(command: cli::TagCommand) -> anyhow::Result<()> {
+    match command {
+        TagCommand::Add { path, tags } => add_tags(&path, &tags)?,
+        TagCommand::Remove { path, tags } => remove_tags(&path, &tags)?,
+    }
+
+    Ok(())
+}
+
+fn add_tags(input: &str, tags: &Vec<String>) -> anyhow::Result<()> {
+    let matches = retrieve_matches(input)?;
+
+    let note = match matches.len() {
+        0 => prompt_no_matches(input)?,
+        1 => matches[0].clone(),
+        _ => prompt_multiple_matches(&matches)?,
+    };
+
+    let id = note.id();
+
+    INDEX.add_tags(id, tags)?;
+
+    Ok(())
+}
+
+fn remove_tags(input: &str, tags: &Vec<String>) -> anyhow::Result<()> {
+    let matches = retrieve_matches(input)?;
+
+    let note = match matches.len() {
+        0 => {
+            println!("{}", "No notes found".bright_red());
+            std::process::exit(0);
+        }
+        1 => matches[0].clone(),
+        _ => prompt_multiple_matches(&matches)?,
+    };
+
+    let id = note.id();
+
+    INDEX.remove_tags(id, tags)?;
+
     Ok(())
 }
 
@@ -120,6 +150,16 @@ pub fn open(path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
+fn retrieve_matches(input: &str) -> anyhow::Result<Vec<Note>> {
+    let path = NotePath::parse(input)?;
+
+    if path.has_parent() {
+        INDEX.find_by_path(&path)
+    } else {
+        INDEX.find_by_title(&path.title())
+    }
+}
+
 fn prompt_multiple_matches(matches: &Vec<Note>) -> anyhow::Result<Note> {
     let mut selections = Vec::new();
     for note in matches {
@@ -136,14 +176,15 @@ fn prompt_multiple_matches(matches: &Vec<Note>) -> anyhow::Result<Note> {
     Ok(matches[selection].clone())
 }
 
-fn prompt_no_matches(path: &NotePath) -> anyhow::Result<Note> {
+fn prompt_no_matches(input: &str) -> anyhow::Result<Note> {
     if Confirm::with_theme(&ColorfulTheme::default())
         .with_prompt("No note found with that name. Would you like to create it now?")
         .default(true)
         .interact()?
     {
+        let path = NotePath::parse(input)?;
         let tags: Vec<String> = Vec::new();
-        create(path, &tags)
+        create(&path, &tags)
     } else {
         std::process::exit(0);
     }
@@ -187,18 +228,24 @@ fn build_table_alt(notes: Vec<Note>) -> String {
 }*/
 
 fn build_table(notes: Vec<Note>) -> String {
+    if notes.len() == 0 {
+        return "No notes found".bright_red().to_string();
+    }
+
     let mut table = String::new();
 
     let max_len = notes
         .iter()
         .map(|n| n.relative_path.len())
         .max()
-        .unwrap_or(0)
+        .unwrap_or(16)
         + 4;
+
+    dbg!(max_len);
 
     table.push_str(
         &format!(
-            "{:<width$}{}\n",
+            "{}{:>width$}\n",
             "Relative Path".cyan().bold(),
             "Modified Time".cyan().bold(),
             width = max_len
