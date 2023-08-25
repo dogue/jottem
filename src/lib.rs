@@ -243,8 +243,6 @@ fn build_table(notes: Vec<Note>) -> String {
         .unwrap_or(16)
         + 4;
 
-    dbg!(max_len);
-
     table.push_str(
         &format!(
             "{}{:>width$}\n",
