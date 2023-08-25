@@ -6,7 +6,7 @@ A lightweight terminal app for managing markdown notes.
 
 Jottem is the note manager I wished already existed. It is a simple and lightweight command line tool to manage a collection of markdown files. It focuses on minimizing the friction between the moment you decide you want to write and actually having the file open in your editor.
 
-Jottem keeps your files in a folder known as the `$JOTTEM_ROOT` (see the Configuration section below). It also keeps an index (using RocksDB) of your notes for fast access (retrieving an absolute path rather than walking directories). A search function is planned but is not implemented at this time. Jottem uses your `$EDITOR` variable to open notes.
+Jottem keeps your files in a folder known as the `$JOTTEM_ROOT` (see the Configuration section below). It also keeps an index (using RocksDB) of your notes for fast access (retrieving an absolute path rather than walking directories). Jottem uses your `$EDITOR` variable to open notes.
 
 *Please note that as of the time of this writing, you are looking at a very early version of jottem. There are still features to come and some existing ones may not be fully fleshed out at this point. I will do my best to keep this readme up to date as development progresses.*
 
