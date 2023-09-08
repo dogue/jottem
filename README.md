@@ -66,6 +66,11 @@ Search by tags
 jottem f -t a_tag,another_tag
 ```
 
+Find *all* notes
+```
+jottem f -a
+```
+
 Jottem's tag search is currently very greedy, meaning it will return all notes that match *any* of the provided tags.
 
 ### Deleting a note
