@@ -1,5 +1,3 @@
-use std::path::{Path, PathBuf};
-
 use cli::{SearchArgs, TagCommand};
 use colored::*;
 use dialoguer::{theme::ColorfulTheme, Confirm, Select};
@@ -203,6 +201,13 @@ fn prompt_no_matches(input: &str) -> anyhow::Result<Note> {
 
 pub fn create_root_dir() -> anyhow::Result<()> {
     std::fs::create_dir_all(config::get_root())?;
+
+    let cwd = std::env::current_dir()?;
+    std::env::set_current_dir(config::get_root())?;
+
+    _ = std::process::Command::new("git").arg("init").output()?;
+
+    std::env::set_current_dir(cwd)?;
 
     Ok(())
 }
