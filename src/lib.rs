@@ -149,7 +149,16 @@ pub fn create(path: &NotePath, tags: &Vec<String>) -> anyhow::Result<Note> {
 pub fn open(path: &str) -> anyhow::Result<()> {
     let editor = config::get_editor();
 
+    // Set working directory to notes root before firing off the editor
+    // This enables file picking notes as well as multi-file features
+    // of Marksman (https://github.com/artempyanykh/marksman)
+    let cwd = std::env::current_dir()?;
+    std::env::set_current_dir(config::get_root())?;
+
     std::process::Command::new(editor).arg(path).status()?;
+
+    // Be sure to restore the old working dir after
+    std::env::set_current_dir(cwd)?;
 
     Ok(())
 }
