@@ -94,4 +94,7 @@ pub struct SearchArgs {
 
     #[arg(short, long, value_delimiter = ',')]
     pub tags: Vec<String>,
+
+    #[arg(short, long)]
+    pub all: bool,
 }

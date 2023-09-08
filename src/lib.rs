@@ -50,6 +50,8 @@ pub fn find(args: &SearchArgs) -> anyhow::Result<()> {
             }
         } else if args.tags.len() > 0 {
             INDEX.find_by_tags(&args.tags)?
+        } else if args.all {
+            INDEX.get_all()?
         } else {
             Vec::new()
         }
@@ -245,7 +247,7 @@ fn build_table(notes: Vec<Note>) -> String {
 
     table.push_str(
         &format!(
-            "{}{:>width$}\n",
+            "{} {:>width$}\n",
             "Relative Path".cyan().bold(),
             "Modified Time".cyan().bold(),
             width = max_len
