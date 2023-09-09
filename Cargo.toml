@@ -2,6 +2,14 @@
 name = "jottem"
 version = "0.1.0"
 edition = "2021"
+license-file = "LICENSE"
+description = "A lightweight CLI manager for your markdown notes."
+homepage = "https://github.com/dogue/jottem"
+documentation = "https://github.com/dogue/jottem#readme"
+repository = "https://github.com/dogue/jottem"
+readme = "README.md"
+categories = ["command-line-utilities"]
+keywords = ["notes", "markdown"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
