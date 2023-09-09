@@ -85,8 +85,8 @@ impl Index {
             .collect())
     }
 
-    pub fn find_by_tags(&self, tags: &Vec<String>) -> anyhow::Result<Vec<Note>> {
-        let tags: HashSet<_> = tags.into_iter().collect();
+    pub fn find_by_tags(&self, tags: &[String]) -> anyhow::Result<Vec<Note>> {
+        let tags: HashSet<_> = tags.iter().collect();
 
         Ok(self
             .get_all()?

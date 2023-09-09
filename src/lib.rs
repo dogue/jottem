@@ -23,7 +23,7 @@ pub fn edit(path: &str) -> anyhow::Result<()> {
     let matches = retrieve_matches(path)?;
 
     let note = match matches.len() {
-        0 => prompt_no_matches(&path)?,
+        0 => prompt_no_matches(path)?,
         1 => matches[0].clone(),
         _ => prompt_multiple_matches(&matches)?,
     };
@@ -47,7 +47,7 @@ pub fn find(args: &SearchArgs) -> anyhow::Result<()> {
             } else {
                 INDEX.find_by_title(&path.title())?
             }
-        } else if args.tags.len() > 0 {
+        } else if !args.tags.is_empty() {
             INDEX.find_by_tags(&args.tags)?
         } else if args.all {
             INDEX.get_all()?
@@ -104,7 +104,7 @@ fn add_tags(input: &str, tags: &Vec<String>) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn remove_tags(input: &str, tags: &Vec<String>) -> anyhow::Result<()> {
+fn remove_tags(input: &str, tags: &[String]) -> anyhow::Result<()> {
     let matches = retrieve_matches(input)?;
 
     let note = match matches.len() {
