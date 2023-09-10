@@ -22,6 +22,8 @@ cargo install --path .
 
 ## Usage
 
+See [the wiki](https://github.com/dogue/jottem/wiki) for a more detailed explanation of subcommands and options.
+
 Jottem's CLI is fairly simple and I've tried to make the help docs you know...helpful. Regardless, let's go over the main functionality.
 
 An important idiom to know is that Jottem allows you to specify a relative path (relative to `$JOTTEM_ROOT`) anywhere that it accepts a note title. This allows you to organize your notes into subdirectories (or not) as you see fit. If you specify a relative path that doesn't exist, Jottem will create it for you. 
