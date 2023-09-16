@@ -69,3 +69,35 @@ impl NotePath {
         format!("{}.md", self.absolute_path())
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn parse_path_from_str() {
+        let input = "";
+        let path = NotePath::parse(input);
+
+        assert!(path.is_err());
+
+        let input = "test";
+        let path = NotePath::parse(input);
+
+        assert!(path.is_ok());
+        let path = path.unwrap();
+
+        assert_eq!(path.title, "test");
+        assert!(path.parent.is_none());
+
+        let input = "parent/test";
+        let path = NotePath::parse(input);
+
+        assert!(path.is_ok());
+        let path = path.unwrap();
+
+        assert_eq!(path.title, "test");
+        assert!(path.parent.is_some());
+        assert_eq!(path.parent, Some("parent".into()));
+    }
+}

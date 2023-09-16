@@ -61,3 +61,80 @@ fn create_parent_path(note_path: &NotePath) -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use serial_test::serial;
+    use std::fs::metadata;
+    use tempfile::TempDir;
+
+    // Filesystem operation tests are run serially
+    // due to depending on the JOTTEM_ROOT env var
+    // being set to a temporary location.
+    // Each test gets a separate randomized tmp dir
+    // for isolation.
+
+    fn setup() -> TempDir {
+        let tmp = tempfile::tempdir().unwrap();
+        std::env::set_var("JOTTEM_ROOT", tmp.path());
+        return tmp;
+    }
+
+    #[test]
+    #[serial]
+    fn test_create_file() {
+        let tmp = setup();
+
+        let path = NotePath::parse("test").expect("Failed to parse NotePath from str");
+        create_file(&path).expect("Failed to create test file inside tmp directory");
+
+        let file =
+            metadata(tmp.path().join("test.md")).expect("Failed to get temporary file metadata");
+        assert!(file.is_file());
+    }
+
+    #[test]
+    #[serial]
+    fn test_create_parent_path() {
+        let tmp = setup();
+
+        let path = NotePath::parse("parent/test").expect("Failed to parse NotePath from str");
+        create_parent_path(&path).expect("Failed to create test directory inside tmp directory");
+
+        let dir = metadata(tmp.path().join("parent"))
+            .expect("Failed to get temporary directory metadata");
+        assert!(dir.is_dir());
+    }
+
+    #[test]
+    #[serial]
+    fn test_delete_file_and_empty_dirs() {
+        let tmp = setup();
+
+        let path =
+            NotePath::parse("deep/parent/path/test").expect("Failed tp parse NotePath from str");
+        create_file(&path).expect("Failed to create test files inside tmp directory");
+
+        // create a second file inside of `deep/parent` to ensure it doesn't delete non-empty dirs
+        let path2 =
+            NotePath::parse("deep/parent/test2").expect("Failed to parse NotePath from str");
+        create_file(&path2).expect("Failed to create test file inside tmp directory");
+
+        // After this operation, we expect `path` to be removed as it's empty.
+        // `deep/parent` should still exist and contain the second file
+        delete_file(&path).expect("Failed to delete test file");
+
+        let meta = metadata(tmp.path().join("deep")).expect("deep");
+        assert!(meta.is_dir());
+
+        let meta = metadata(tmp.path().join("deep/parent")).expect("deep/parent");
+        assert!(meta.is_dir());
+
+        let meta = metadata(tmp.path().join("deep/parent/test2.md")).expect("deep/parent/test2");
+        assert!(meta.is_file());
+
+        let meta = metadata(tmp.path().join("deep/parent/path"));
+        assert!(meta.is_err()); // should be a NotFound error
+    }
+}
