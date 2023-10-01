@@ -23,7 +23,12 @@ pub fn delete_file(note_path: &NotePath) -> anyhow::Result<()> {
     let path = note_path.absolute_path_with_ext();
     let path = Path::new(&path);
 
-    std::fs::remove_file(path).map_err(|e| anyhow::anyhow!("Failed to remove note file: {e}"))?;
+    std::fs::remove_file(path).map_err(|e| {
+        anyhow::anyhow!(
+            "Failed to remove note file: {}: {e}",
+            path.to_str().unwrap()
+        )
+    })?;
 
     if note_path.has_parent() {
         let entries: Vec<_> = std::fs::read_dir(note_path.absolute_parent().unwrap())?
@@ -37,6 +42,17 @@ pub fn delete_file(note_path: &NotePath) -> anyhow::Result<()> {
                 .map_err(|e| anyhow::anyhow!("Failed to remove empty directory: {e}"))?;
         }
     }
+
+    Ok(())
+}
+
+pub fn rename_file(note_path: &NotePath, new_path: &NotePath) -> anyhow::Result<()> {
+    let old_path = note_path.absolute_path_with_ext();
+    let old_path = Path::new(&old_path);
+    let new_path = new_path.absolute_path_with_ext();
+    let new_path = Path::new(&new_path);
+
+    std::fs::rename(old_path, new_path)?;
 
     Ok(())
 }

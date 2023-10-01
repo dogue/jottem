@@ -2,7 +2,7 @@ use cli::{SearchArgs, TagCommand};
 use colored::*;
 use comfy_table::{presets::ASCII_MARKDOWN, Cell, Table};
 use dialoguer::{theme::ColorfulTheme, Confirm, Select};
-use file::delete_file;
+use file::{delete_file, rename_file};
 use index::Index;
 use lazy_static::lazy_static;
 use note::Note;
@@ -123,7 +123,39 @@ fn remove_tags(input: &str, tags: &[String]) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn rebuild() -> anyhow::Result<()> {
+pub fn rename(path: &str, new_title: &str) -> anyhow::Result<()> {
+    let matches = retrieve_matches(path)?;
+
+    let mut note = match matches.len() {
+        0 => {
+            println!("{}", "No notes found".bright_red());
+            std::process::exit(0);
+        }
+        1 => matches[0].clone(),
+        _ => prompt_multiple_matches(&matches)?,
+    };
+    let id = note.id();
+
+    let old_path = NotePath::from_note(&note)?;
+    let new_path = {
+        if old_path.has_parent() {
+            format!("{}/{}", old_path.relative_parent().unwrap(), new_title)
+        } else {
+            new_title.to_string()
+        }
+    };
+
+    let new_path = NotePath::parse(&new_path)?;
+
+    note.relative_path = new_path.relative_path();
+    note.absolute_path = new_path.absolute_path_with_ext();
+    note.title = new_path.title();
+
+    INDEX.insert(note)?;
+    INDEX.remove(id)?;
+
+    rename_file(&old_path, &new_path)?;
+
     Ok(())
 }
 

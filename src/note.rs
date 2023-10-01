@@ -8,6 +8,7 @@ use crate::path::NotePath;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Note {
+    /// Absolute filesystem path (including `.md`)
     pub absolute_path: String,
     pub relative_path: String,
     pub title: String,

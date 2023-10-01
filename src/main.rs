@@ -20,7 +20,7 @@ fn main() -> anyhow::Result<()> {
         Command::Find { args } => jottem::find(&args)?,
         Command::Delete { path } => jottem::delete(&path)?,
         Command::Tag { subcommand } => jottem::tag(subcommand)?,
-        Command::Rebuild => jottem::rebuild()?,
+        Command::Rename { path, new_title } => jottem::rename(&path, &new_title)?,
         Command::Export => jottem::export()?,
 
         #[cfg(feature = "nuke")]

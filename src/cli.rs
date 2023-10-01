@@ -47,8 +47,12 @@ pub enum Command {
         subcommand: TagCommand,
     },
 
-    #[clap(name = "rebuild", alias = "r", about = "[r]ebuild the notes index")]
-    Rebuild,
+    #[clap(name = "rename", alias = "r", about = "[r]ename a note")]
+    Rename {
+        #[arg(help = "note title or relative path")]
+        path: String,
+        new_title: String,
+    },
 
     #[clap(
         name = "export",
