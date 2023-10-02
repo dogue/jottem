@@ -14,7 +14,12 @@ pub fn create_file(note_path: &NotePath) -> anyhow::Result<()> {
         .write(true)
         .create_new(true)
         .open(path)
-        .map_err(|e| anyhow::anyhow!("Failed to create new note file: {e}"))?;
+        .map_err(|e| {
+            anyhow::anyhow!(
+                "Failed to create new note file: {}: {e}",
+                path.to_string_lossy()
+            )
+        })?;
 
     Ok(())
 }
@@ -26,7 +31,11 @@ pub fn delete_file(note_path: &NotePath) -> anyhow::Result<()> {
     std::fs::remove_file(path).map_err(|e| {
         anyhow::anyhow!(
             "Failed to remove note file: {}: {e}",
+<<<<<<< HEAD
             path.to_str().unwrap()
+=======
+            path.to_string_lossy()
+>>>>>>> improve-errors
         )
     })?;
 
@@ -38,8 +47,12 @@ pub fn delete_file(note_path: &NotePath) -> anyhow::Result<()> {
             let path = note_path.absolute_parent().unwrap();
             let path = Path::new(&path);
 
-            std::fs::remove_dir(path)
-                .map_err(|e| anyhow::anyhow!("Failed to remove empty directory: {e}"))?;
+            std::fs::remove_dir(path).map_err(|e| {
+                anyhow::anyhow!(
+                    "Failed to remove empty directory: {}: {e}",
+                    path.to_string_lossy()
+                )
+            })?;
         }
     }
 
@@ -72,8 +85,12 @@ fn create_parent_path(note_path: &NotePath) -> anyhow::Result<()> {
     let path = note_path.absolute_parent().unwrap();
     let path = Path::new(&path);
 
-    std::fs::create_dir_all(path)
-        .map_err(|e| anyhow::anyhow!("Failed to create parent path: {e}"))?;
+    std::fs::create_dir_all(path).map_err(|e| {
+        anyhow::anyhow!(
+            "Failed to create parent path: {}: {e}",
+            path.to_string_lossy()
+        )
+    })?;
 
     Ok(())
 }

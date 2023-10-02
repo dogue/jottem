@@ -9,7 +9,7 @@ pub struct NotePath {
 impl NotePath {
     pub fn parse(input: &str) -> anyhow::Result<Self> {
         if input.is_empty() {
-            return Err(anyhow::anyhow!("No path provided"));
+            return Err(anyhow::anyhow!("Error: No path provided"));
         }
 
         let input = input.trim_start_matches('/');
