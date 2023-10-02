@@ -1,7 +1,6 @@
 use cli::{SearchArgs, TagCommand};
 use colored::*;
 use comfy_table::{presets::ASCII_MARKDOWN, Cell, Table};
-use dialoguer::{theme::ColorfulTheme, Confirm, Select};
 use file::{delete_file, move_file, rename_file};
 use index::Index;
 use lazy_static::lazy_static;
@@ -14,6 +13,7 @@ pub mod file;
 pub mod index;
 pub mod note;
 pub mod path;
+pub mod prompt;
 
 lazy_static! {
     static ref INDEX: Index = Index::open().unwrap();
@@ -22,10 +22,27 @@ lazy_static! {
 pub fn edit(path: &str) -> anyhow::Result<()> {
     let matches = retrieve_matches(path)?;
 
+    // This match pattern is used a LOT here. Should probably consider
+    // breaking it out into a separate function.
     let note = match matches.len() {
-        0 => prompt_no_matches(path)?,
+        0 => {
+            if prompt::no_matches()? {
+                let path = NotePath::parse(path)?;
+                let tags = Vec::new();
+                create(&path, &tags)?
+            } else {
+                // find a cleaner way (if any) to do this
+                // we bail entirely because this function triggers other stuff
+                std::process::exit(0);
+            }
+        }
         1 => matches[0].clone(),
-        _ => prompt_multiple_matches(&matches)?,
+        _ => {
+            let options = matches.iter().map(|n| n.relative_path.to_owned()).collect();
+
+            let selection = prompt::multiple_matches(&options)?;
+            matches[selection].clone()
+        }
     };
 
     open(&note.absolute_path)?;
@@ -70,7 +87,11 @@ pub fn delete(path: &str) -> anyhow::Result<()> {
 
     let note = match matches.len() {
         1 => matches[0].clone(),
-        _ => prompt_multiple_matches(&matches)?,
+        _ => {
+            let options = matches.iter().map(|n| n.relative_path.to_owned()).collect();
+            let selection = prompt::multiple_matches(&options)?;
+            matches[selection].clone()
+        }
     };
 
     INDEX.remove(note.id())?;
@@ -92,9 +113,20 @@ fn add_tags(input: &str, tags: &Vec<String>) -> anyhow::Result<()> {
     let matches = retrieve_matches(input)?;
 
     let note = match matches.len() {
-        0 => prompt_no_matches(input)?,
+        0 => {
+            if prompt::no_matches()? {
+                let path = NotePath::parse(input)?;
+                create(&path, tags)?
+            } else {
+                std::process::exit(0);
+            }
+        }
         1 => matches[0].clone(),
-        _ => prompt_multiple_matches(&matches)?,
+        _ => {
+            let options = matches.iter().map(|n| n.relative_path.to_owned()).collect();
+            let selection = prompt::multiple_matches(&options)?;
+            matches[selection].clone()
+        }
     };
 
     let id = note.id();
@@ -109,11 +141,16 @@ fn remove_tags(input: &str, tags: &[String]) -> anyhow::Result<()> {
 
     let note = match matches.len() {
         0 => {
+            // this shit sucks. will fix soon
             println!("{}", "No notes found".bright_red());
             std::process::exit(0);
         }
         1 => matches[0].clone(),
-        _ => prompt_multiple_matches(&matches)?,
+        _ => {
+            let options = matches.iter().map(|n| n.relative_path.clone()).collect();
+            let selection = prompt::multiple_matches(&options)?;
+            matches[selection].clone()
+        }
     };
 
     let id = note.id();
@@ -132,7 +169,11 @@ pub fn rename(path: &str, new_title: &str) -> anyhow::Result<()> {
             std::process::exit(0);
         }
         1 => matches[0].clone(),
-        _ => prompt_multiple_matches(&matches)?,
+        _ => {
+            let options = matches.iter().map(|n| n.relative_path.clone()).collect();
+            let selection = prompt::multiple_matches(&options)?;
+            matches[selection].clone()
+        }
     };
     let id = note.id();
 
@@ -168,7 +209,11 @@ pub fn move_note(path: &str, new_path: &str) -> anyhow::Result<()> {
             std::process::exit(0);
         }
         1 => matches[0].clone(),
-        _ => prompt_multiple_matches(&matches)?,
+        _ => {
+            let options = matches.iter().map(|n| n.relative_path.clone()).collect();
+            let selection = prompt::multiple_matches(&options)?;
+            matches[selection].clone()
+        }
     };
     let id = note.id();
 
@@ -227,38 +272,6 @@ fn retrieve_matches(input: &str) -> anyhow::Result<Vec<Note>> {
         INDEX.find_by_path(&path)
     } else {
         INDEX.find_by_title(&path.title())
-    }
-}
-
-/// Prompts the user to choose a single note from multiple matching notes.
-fn prompt_multiple_matches(matches: &Vec<Note>) -> anyhow::Result<Note> {
-    let mut selections = Vec::new();
-    for note in matches {
-        selections.push(&note.relative_path);
-    }
-
-    let selection = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("Multiple notes found. Please choose one")
-        .default(0)
-        .items(&selections)
-        .interact()
-        .unwrap();
-
-    Ok(matches[selection].clone())
-}
-
-/// Prompts the user to ask if they would like to create a new note.
-fn prompt_no_matches(input: &str) -> anyhow::Result<Note> {
-    if Confirm::with_theme(&ColorfulTheme::default())
-        .with_prompt("No note found with that name. Would you like to create it now?")
-        .default(true)
-        .interact()?
-    {
-        let path = NotePath::parse(input)?;
-        let tags: Vec<String> = Vec::new();
-        create(&path, &tags)
-    } else {
-        std::process::exit(0);
     }
 }
 
