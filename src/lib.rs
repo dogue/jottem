@@ -170,6 +170,7 @@ fn retrieve_matches(input: &str) -> anyhow::Result<Vec<Note>> {
     }
 }
 
+/// Prompts the user to choose a single note from multiple matching notes.
 fn prompt_multiple_matches(matches: &Vec<Note>) -> anyhow::Result<Note> {
     let mut selections = Vec::new();
     for note in matches {
@@ -186,6 +187,7 @@ fn prompt_multiple_matches(matches: &Vec<Note>) -> anyhow::Result<Note> {
     Ok(matches[selection].clone())
 }
 
+/// Prompts the user to ask if they would like to create a new note.
 fn prompt_no_matches(input: &str) -> anyhow::Result<Note> {
     if Confirm::with_theme(&ColorfulTheme::default())
         .with_prompt("No note found with that name. Would you like to create it now?")
@@ -200,6 +202,7 @@ fn prompt_no_matches(input: &str) -> anyhow::Result<Note> {
     }
 }
 
+/// Creates the root note directory and initializes it as a git repository (for Marksman integration)
 pub fn create_root_dir() -> anyhow::Result<()> {
     std::fs::create_dir_all(config::get_root())?;
 
@@ -213,6 +216,7 @@ pub fn create_root_dir() -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Creates an ASCII table for displaying a collection of notes.
 fn build_table(notes: Vec<Note>) -> String {
     let mut table = Table::new();
 
@@ -235,6 +239,9 @@ fn build_table(notes: Vec<Note>) -> String {
     table.to_string()
 }
 
+/// Removes all note files, the root note directory, and the database.
+/// Previously used for development. This command is gated behind the `nuke`
+/// feature flag.
 #[cfg(feature = "nuke")]
 pub fn nuke() -> anyhow::Result<()> {
     if !Confirm::with_theme(&ColorfulTheme::default())
