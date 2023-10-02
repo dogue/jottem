@@ -21,6 +21,7 @@ fn main() -> anyhow::Result<()> {
         Command::Delete { path } => jottem::delete(&path)?,
         Command::Tag { subcommand } => jottem::tag(subcommand)?,
         Command::Rename { path, new_title } => jottem::rename(&path, &new_title)?,
+        Command::Move { path, new_path } => jottem::move_note(&path, &new_path)?,
         Command::Export => jottem::export()?,
 
         #[cfg(feature = "nuke")]

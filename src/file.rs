@@ -31,11 +31,7 @@ pub fn delete_file(note_path: &NotePath) -> anyhow::Result<()> {
     std::fs::remove_file(path).map_err(|e| {
         anyhow::anyhow!(
             "Failed to remove note file: {}: {e}",
-<<<<<<< HEAD
-            path.to_str().unwrap()
-=======
             path.to_string_lossy()
->>>>>>> improve-errors
         )
     })?;
 
@@ -66,6 +62,22 @@ pub fn rename_file(note_path: &NotePath, new_path: &NotePath) -> anyhow::Result<
     let new_path = Path::new(&new_path);
 
     std::fs::rename(old_path, new_path)?;
+
+    Ok(())
+}
+
+pub fn move_file(note_path: &NotePath, new_path: &NotePath) -> anyhow::Result<()> {
+    if new_path.has_parent() {
+        create_parent_path(&new_path)?;
+    }
+
+    let old_path = note_path.absolute_path_with_ext();
+    let old_path = Path::new(&old_path);
+    let new_path = new_path.absolute_path_with_ext();
+    let new_path = Path::new(&new_path);
+
+    std::fs::copy(old_path, new_path)?;
+    delete_file(note_path)?;
 
     Ok(())
 }

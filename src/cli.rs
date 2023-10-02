@@ -51,7 +51,18 @@ pub enum Command {
     Rename {
         #[arg(help = "note title or relative path")]
         path: String,
+
+        #[arg(help = "new note title")]
         new_title: String,
+    },
+
+    #[clap(name = "move", alias = "m", about = "[m]ove a note")]
+    Move {
+        #[arg(help = "note title or relative path")]
+        path: String,
+
+        #[arg(help = "new relative path")]
+        new_path: String,
     },
 
     #[clap(
