@@ -13,7 +13,7 @@ fn main() -> anyhow::Result<()> {
     match cli.command {
         Command::Create { path, tags } => {
             let path = NotePath::parse(&path)?;
-            let note = jottem::create(&path, &tags)?;
+            let note = jottem::create_note(&path, &tags)?;
             jottem::open(&note.absolute_path)?;
         }
         Command::Edit { path } => jottem::edit(&path)?,

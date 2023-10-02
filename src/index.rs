@@ -95,7 +95,7 @@ impl Index {
             .collect())
     }
 
-    pub fn add_tags(&self, id: u64, tags: &Vec<String>) -> anyhow::Result<()> {
+    pub fn add_tags(&self, id: u64, tags: &[String]) -> anyhow::Result<()> {
         if let Some(mut note) = self.get(id)? {
             note.add_tags(tags);
             self.insert(note)?;

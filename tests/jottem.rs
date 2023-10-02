@@ -15,7 +15,7 @@ fn test_create_note() {
     let _tmp = setup();
 
     let path = NotePath::parse("test_note").unwrap();
-    let note = jottem::create(&path, &Vec::new());
+    let note = jottem::create_note(&path, &Vec::new());
 
     assert!(note.is_ok_and(|n| n.title == "test_note"));
 }
@@ -26,7 +26,7 @@ fn test_create_note_with_tags() {
     let _tmp = setup();
 
     let path = NotePath::parse("test_note").unwrap();
-    let note = jottem::create(&path, &vec!["test_tag".into()]);
+    let note = jottem::create_note(&path, &vec!["test_tag".into()]);
 
     assert!(note.is_ok_and(|n| n.tags.contains("test_tag")));
 }
@@ -37,7 +37,7 @@ fn test_find_note_by_title() {
     let _tmp = setup();
 
     let path = NotePath::parse("test_note").unwrap();
-    jottem::create(&path, &Vec::new()).unwrap();
+    jottem::create_note(&path, &Vec::new()).unwrap();
 
     let search = SearchArgs {
         path: Some("test_note".into()),

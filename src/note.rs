@@ -18,7 +18,7 @@ pub struct Note {
 }
 
 impl Note {
-    pub fn new(note_path: &NotePath, note_tags: &Vec<String>) -> Self {
+    pub fn new(note_path: &NotePath, note_tags: &[String]) -> Self {
         let absolute_path = note_path.absolute_path_with_ext();
         let relative_path = note_path.relative_path();
         let title = note_path.title();
@@ -47,7 +47,7 @@ impl Note {
         hasher.finish()
     }
 
-    pub fn add_tags(&mut self, tags: &Vec<String>) {
+    pub fn add_tags(&mut self, tags: &[String]) {
         for tag in tags {
             self.tags.insert(tag.to_owned());
         }

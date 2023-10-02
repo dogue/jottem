@@ -20,6 +20,12 @@ lazy_static! {
     static ref INDEX: Index = Index::open().expect("Failed to open database");
 }
 
+/// Opens a note in the user's editor per the $EDITOR variable
+///
+/// * `path` - raw input from the user such as `foo/bar`
+///
+/// After the editor is closed, we update the modified time on the note
+/// and then update the record in the index.
 pub fn edit(path: &str) -> anyhow::Result<()> {
     let note = get_note(path, true)?;
 
@@ -32,6 +38,7 @@ pub fn edit(path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
+// TODO: refactor and document this
 pub fn find(args: &SearchArgs) -> anyhow::Result<()> {
     let notes = {
         if let Some(path) = args.path.clone() {
@@ -58,6 +65,9 @@ pub fn find(args: &SearchArgs) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Deletes a note both from disk and the index.
+///
+/// * `path` - raw input from the user such as `foo/bar`
 pub fn delete(path: &str) -> anyhow::Result<()> {
     let path = NotePath::parse(path)?;
 
@@ -72,33 +82,42 @@ pub fn delete(path: &str) -> anyhow::Result<()> {
         }
     };
 
-    INDEX.remove(note.id())?;
     delete_file(&NotePath::from_note(&note)?)?;
+    INDEX.remove(note.id())?;
 
-    Ok(())
+    return Ok(());
 }
 
+/// Triggers the appropriate tag management action.
 pub fn tag(command: cli::TagCommand) -> anyhow::Result<()> {
     match command {
         TagCommand::Add { path, tags } => add_tags(&path, &tags)?,
         TagCommand::Remove { path, tags } => remove_tags(&path, &tags)?,
     }
 
-    Ok(())
+    return Ok(());
 }
 
-fn add_tags(input: &str, tags: &Vec<String>) -> anyhow::Result<()> {
-    let note = get_note(input, true)?;
+/// Adds one or more tags to an existing note.
+///
+/// * `path` - raw input from the user such as `foo/bar`
+/// * `tags` - a slice of String representing tags given by the user
+fn add_tags(path: &str, tags: &[String]) -> anyhow::Result<()> {
+    let note = get_note(path, true)?;
 
     let id = note.id();
 
     INDEX.add_tags(id, tags)?;
 
-    Ok(())
+    return Ok(());
 }
 
-fn remove_tags(input: &str, tags: &[String]) -> anyhow::Result<()> {
-    let note = get_note(input, false)?;
+/// Removes one or more tags from an existing note.
+///
+/// * `path` - raw input from the user such as `foo/bar`
+/// * `tags` - a slice of String representing tags given by the user
+fn remove_tags(path: &str, tags: &[String]) -> anyhow::Result<()> {
+    let note = get_note(path, false)?;
 
     let id = note.id();
 
@@ -107,6 +126,7 @@ fn remove_tags(input: &str, tags: &[String]) -> anyhow::Result<()> {
     Ok(())
 }
 
+// TODO: refactor and document this
 pub fn rename(path: &str, new_title: &str) -> anyhow::Result<()> {
     let mut note = get_note(path, false)?;
 
@@ -135,6 +155,7 @@ pub fn rename(path: &str, new_title: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
+// TODO: refactor and document this
 pub fn move_note(path: &str, new_path: &str) -> anyhow::Result<()> {
     let mut note = get_note(path, false)?;
 
@@ -155,6 +176,10 @@ pub fn move_note(path: &str, new_path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Prints out the entire index as JSON
+///
+/// This is currently here for debugging purposes, but may serve
+/// as part of a backup/restore feature in the future.
 pub fn export() -> anyhow::Result<()> {
     let notes = INDEX.get_all()?;
     let export = serde_json::to_string(&notes)?;
@@ -164,7 +189,11 @@ pub fn export() -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn create(path: &NotePath, tags: &Vec<String>) -> anyhow::Result<Note> {
+/// Creates a new note both on disk and in the index.
+///
+/// * `path` - raw input from the user such as `foo/bar`
+/// * `tags` - a slice of String representing tags given by the user
+pub fn create_note(path: &NotePath, tags: &[String]) -> anyhow::Result<Note> {
     let note = Note::new(path, tags);
 
     file::create_file(path)?;
@@ -173,11 +202,17 @@ pub fn create(path: &NotePath, tags: &Vec<String>) -> anyhow::Result<Note> {
     Ok(note)
 }
 
+/// Opens a note in the user's editor per the `$EDITOR` variable
+///
+/// * `path` - absolute disk path (with `.md` extension) to a note
+///
+/// Before opening the file, we store the current working directory
+/// and change to the root notes directory. This enables some nice
+/// features from Marksman (see [`create_root_dir`]). After the editor
+/// is closed, we restore the original working directory.
 pub fn open(path: &str) -> anyhow::Result<()> {
     let editor = config::get_editor();
 
-    // Setting the working directory to the notes root enables multi-file features
-    // of Marksman if the notes root is a repo.
     let cwd = std::env::current_dir()?;
     std::env::set_current_dir(config::get_root())?;
 
@@ -188,6 +223,19 @@ pub fn open(path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Disambiguates user input into a single note, optionally creating a new note
+/// if no existing notes matched the input.
+///
+/// * `path` - raw user input such as `foo/bar`
+/// * `create_if_empty` - a boolean signifying whether we should prompt the user
+/// to create a new note if none of the existing notes match the input.
+///
+/// If `create_if_empty` is true and no existing notes match the user input,
+/// we prompt the user to ask if they wish to create a new empty note.
+/// If `create_if_empty` is false and no existing notes match the user input,
+/// we notify the user that no notes were found and exit gracefully.
+///
+/// Some actions such as deleting a note don't make sense to prompt for creation.
 fn get_note(path: &str, create_if_empty: bool) -> anyhow::Result<Note> {
     let path = NotePath::parse(path)?;
 
@@ -201,7 +249,7 @@ fn get_note(path: &str, create_if_empty: bool) -> anyhow::Result<Note> {
         0 => {
             if create_if_empty && prompt::no_matches()? {
                 let tags = Vec::new();
-                create(&path, &tags)?
+                create_note(&path, &tags)?
             } else {
                 println!("{}", "Found 0 matching notes".bright_red());
                 std::process::exit(0);
@@ -218,7 +266,11 @@ fn get_note(path: &str, create_if_empty: bool) -> anyhow::Result<Note> {
     return Ok(note);
 }
 
-/// Creates the root note directory and initializes it as a git repository (for Marksman integration)
+/// Creates the root note directory and initializes it as a git repository
+///
+/// Initializing a git repo in the root notes directory enables the use
+/// of [Marksman](https://github.com/artempyanykh/marksman) if the user has
+/// it installed.
 pub fn create_root_dir() -> anyhow::Result<()> {
     std::fs::create_dir_all(config::get_root())?;
 
@@ -236,6 +288,7 @@ pub fn create_root_dir() -> anyhow::Result<()> {
 fn build_table(notes: Vec<Note>) -> String {
     let mut table = Table::new();
 
+    // Creates a simple ASCII table with the outer borders removed (aesthetic choice)
     table
         .load_preset(ASCII_MARKDOWN)
         .set_style(comfy_table::TableComponent::LeftBorder, '\0')
@@ -243,6 +296,7 @@ fn build_table(notes: Vec<Note>) -> String {
         .set_style(comfy_table::TableComponent::LeftHeaderIntersection, '\0')
         .set_style(comfy_table::TableComponent::RightHeaderIntersection, '\0');
 
+    // A splash of color on the headings for extra clarity. May be changed later.
     table.set_header(vec![
         Cell::new("Note").fg(comfy_table::Color::Cyan),
         Cell::new("Modified Time").fg(comfy_table::Color::Cyan),
@@ -258,6 +312,8 @@ fn build_table(notes: Vec<Note>) -> String {
 /// Removes all note files, the root note directory, and the database.
 /// Previously used for development. This command is gated behind the `nuke`
 /// feature flag.
+///
+/// This will likely be removed in a future update.
 #[cfg(feature = "nuke")]
 pub fn nuke() -> anyhow::Result<()> {
     if !Confirm::with_theme(&ColorfulTheme::default())
