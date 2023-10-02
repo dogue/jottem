@@ -1,5 +1,5 @@
 use cli::{SearchArgs, TagCommand};
-use colored::*;
+use colored::Colorize;
 use comfy_table::{presets::ASCII_MARKDOWN, Cell, Table};
 use file::{delete_file, move_file, rename_file};
 use index::Index;
@@ -16,34 +16,12 @@ pub mod path;
 pub mod prompt;
 
 lazy_static! {
-    static ref INDEX: Index = Index::open().unwrap();
+    // make this error better. probably with logging later
+    static ref INDEX: Index = Index::open().expect("Failed to open database");
 }
 
 pub fn edit(path: &str) -> anyhow::Result<()> {
-    let matches = retrieve_matches(path)?;
-
-    // This match pattern is used a LOT here. Should probably consider
-    // breaking it out into a separate function.
-    let note = match matches.len() {
-        0 => {
-            if prompt::no_matches()? {
-                let path = NotePath::parse(path)?;
-                let tags = Vec::new();
-                create(&path, &tags)?
-            } else {
-                // find a cleaner way (if any) to do this
-                // we bail entirely because this function triggers other stuff
-                std::process::exit(0);
-            }
-        }
-        1 => matches[0].clone(),
-        _ => {
-            let options = matches.iter().map(|n| n.relative_path.to_owned()).collect();
-
-            let selection = prompt::multiple_matches(&options)?;
-            matches[selection].clone()
-        }
-    };
+    let note = get_note(path, true)?;
 
     open(&note.absolute_path)?;
 
@@ -110,24 +88,7 @@ pub fn tag(command: cli::TagCommand) -> anyhow::Result<()> {
 }
 
 fn add_tags(input: &str, tags: &Vec<String>) -> anyhow::Result<()> {
-    let matches = retrieve_matches(input)?;
-
-    let note = match matches.len() {
-        0 => {
-            if prompt::no_matches()? {
-                let path = NotePath::parse(input)?;
-                create(&path, tags)?
-            } else {
-                std::process::exit(0);
-            }
-        }
-        1 => matches[0].clone(),
-        _ => {
-            let options = matches.iter().map(|n| n.relative_path.to_owned()).collect();
-            let selection = prompt::multiple_matches(&options)?;
-            matches[selection].clone()
-        }
-    };
+    let note = get_note(input, true)?;
 
     let id = note.id();
 
@@ -137,21 +98,7 @@ fn add_tags(input: &str, tags: &Vec<String>) -> anyhow::Result<()> {
 }
 
 fn remove_tags(input: &str, tags: &[String]) -> anyhow::Result<()> {
-    let matches = retrieve_matches(input)?;
-
-    let note = match matches.len() {
-        0 => {
-            // this shit sucks. will fix soon
-            println!("{}", "No notes found".bright_red());
-            std::process::exit(0);
-        }
-        1 => matches[0].clone(),
-        _ => {
-            let options = matches.iter().map(|n| n.relative_path.clone()).collect();
-            let selection = prompt::multiple_matches(&options)?;
-            matches[selection].clone()
-        }
-    };
+    let note = get_note(input, false)?;
 
     let id = note.id();
 
@@ -161,20 +108,8 @@ fn remove_tags(input: &str, tags: &[String]) -> anyhow::Result<()> {
 }
 
 pub fn rename(path: &str, new_title: &str) -> anyhow::Result<()> {
-    let matches = retrieve_matches(path)?;
+    let mut note = get_note(path, false)?;
 
-    let mut note = match matches.len() {
-        0 => {
-            println!("{}", "No notes found".bright_red());
-            std::process::exit(0);
-        }
-        1 => matches[0].clone(),
-        _ => {
-            let options = matches.iter().map(|n| n.relative_path.clone()).collect();
-            let selection = prompt::multiple_matches(&options)?;
-            matches[selection].clone()
-        }
-    };
     let id = note.id();
 
     let old_path = NotePath::from_note(&note)?;
@@ -201,20 +136,8 @@ pub fn rename(path: &str, new_title: &str) -> anyhow::Result<()> {
 }
 
 pub fn move_note(path: &str, new_path: &str) -> anyhow::Result<()> {
-    let matches = retrieve_matches(path)?;
+    let mut note = get_note(path, false)?;
 
-    let mut note = match matches.len() {
-        0 => {
-            println!("{}", "No notes found".bright_red());
-            std::process::exit(0);
-        }
-        1 => matches[0].clone(),
-        _ => {
-            let options = matches.iter().map(|n| n.relative_path.clone()).collect();
-            let selection = prompt::multiple_matches(&options)?;
-            matches[selection].clone()
-        }
-    };
     let id = note.id();
 
     let old_path = NotePath::from_note(&note)?;
@@ -265,14 +188,34 @@ pub fn open(path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn retrieve_matches(input: &str) -> anyhow::Result<Vec<Note>> {
-    let path = NotePath::parse(input)?;
+fn get_note(path: &str, create_if_empty: bool) -> anyhow::Result<Note> {
+    let path = NotePath::parse(path)?;
 
-    if path.has_parent() {
-        INDEX.find_by_path(&path)
+    let matches = if path.has_parent() {
+        INDEX.find_by_path(&path)?
     } else {
-        INDEX.find_by_title(&path.title())
-    }
+        INDEX.find_by_title(&path.title())?
+    };
+
+    let note = match matches.len() {
+        0 => {
+            if create_if_empty && prompt::no_matches()? {
+                let tags = Vec::new();
+                create(&path, &tags)?
+            } else {
+                println!("{}", "Found 0 matching notes".bright_red());
+                std::process::exit(0);
+            }
+        }
+        1 => matches[0].clone(),
+        _ => {
+            let options = matches.iter().map(|n| n.relative_path.clone()).collect();
+            let selection = prompt::multiple_matches(&options)?;
+            matches[selection].clone()
+        }
+    };
+
+    return Ok(note);
 }
 
 /// Creates the root note directory and initializes it as a git repository (for Marksman integration)
