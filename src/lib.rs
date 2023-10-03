@@ -28,13 +28,12 @@ lazy_static! {
 /// After the editor is closed, we update the modified time on the note
 /// and then update the record in the index.
 pub fn edit_note(path: &str) -> anyhow::Result<()> {
-    let note = get_note(path, true)?;
+    let mut note = get_note(path, true)?;
 
     open_note(&note.absolute_path)?;
 
-    let mut note = INDEX.get(note.id())?.unwrap();
     note.modified = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-    INDEX.insert(note)?;
+    INDEX.insert(&note)?;
 
     Ok(())
 }
@@ -47,14 +46,16 @@ pub fn edit_note(path: &str) -> anyhow::Result<()> {
 /// path to the note and the last modified time.
 pub fn find_notes(args: &SearchArgs) -> anyhow::Result<()> {
     let notes = {
-        if let Some(path) = args.path.clone() {
-            find::by_path(&path)?
+        if args.path.is_some() {
+            let path = args.path.as_ref().unwrap();
+            find::by_path(path)?
         } else if !args.tags.is_empty() {
             find::by_tags(&args.tags)?
         } else if args.all {
             find::all()?
         } else {
-            Vec::new()
+            println!("{}", "Found 0 matching notes".bright_red());
+            return Ok(());
         }
     };
 
@@ -143,7 +144,7 @@ pub fn rename_note(path: &str, new_title: &str) -> anyhow::Result<()> {
     note.absolute_path = new_path.absolute_path_with_ext();
     note.title = new_path.title();
 
-    INDEX.insert(note)?;
+    INDEX.insert(&note)?;
     INDEX.remove(id)?;
 
     rename_file(&old_path, &new_path)?;
@@ -166,7 +167,7 @@ pub fn move_note(path: &str, new_path: &str) -> anyhow::Result<()> {
 
     move_file(&old_path, &new_path)?;
 
-    INDEX.insert(note)?;
+    INDEX.insert(&note)?;
     INDEX.remove(id)?;
 
     Ok(())
@@ -193,7 +194,7 @@ pub fn create_note(path: &NotePath, tags: &[String]) -> anyhow::Result<Note> {
     let note = Note::new(path, tags);
 
     file::create_file(path)?;
-    INDEX.insert(note.clone())?;
+    INDEX.insert(&note)?;
 
     Ok(note)
 }
@@ -235,7 +236,7 @@ pub fn open_note(path: &str) -> anyhow::Result<()> {
 fn get_note(path: &str, create_if_empty: bool) -> anyhow::Result<Note> {
     let path = NotePath::parse(path)?;
 
-    let matches = if path.has_parent() {
+    let mut matches = if path.has_parent() {
         INDEX.find_by_path(&path)?
     } else {
         INDEX.find_by_title(&path.title())?
@@ -251,15 +252,15 @@ fn get_note(path: &str, create_if_empty: bool) -> anyhow::Result<Note> {
                 std::process::exit(0);
             }
         }
-        1 => matches[0].clone(),
+        1 => matches.pop().unwrap(),
         _ => {
             let options = matches
                 .iter()
-                .map(|n| n.relative_path.clone())
-                .collect::<Vec<String>>();
+                .map(|n| n.relative_path.as_str())
+                .collect::<Vec<&str>>();
 
             let selection = prompt::multiple_matches(&options)?;
-            matches[selection].clone()
+            matches.swap_remove(selection)
         }
     };
 

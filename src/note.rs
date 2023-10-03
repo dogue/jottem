@@ -10,6 +10,7 @@ use crate::path::NotePath;
 pub struct Note {
     /// Absolute filesystem path (including `.md`)
     pub absolute_path: String,
+    /// Relative path inside the root directory (such as `foo/bar`)
     pub relative_path: String,
     pub title: String,
     pub created: String,
@@ -41,7 +42,7 @@ impl Note {
     }
 
     pub fn id(&self) -> u64 {
-        let id = self.absolute_path.clone();
+        let id = &self.absolute_path;
         let mut hasher = DefaultHasher::new();
         id.hash(&mut hasher);
         hasher.finish()
@@ -49,7 +50,7 @@ impl Note {
 
     pub fn add_tags(&mut self, tags: &[String]) {
         for tag in tags {
-            self.tags.insert(tag.to_owned());
+            self.tags.insert(tag.to_string());
         }
     }
 
@@ -57,7 +58,7 @@ impl Note {
         self.tags.retain(|tag| !tags.contains(tag));
     }
 
-    pub fn serialize(self) -> anyhow::Result<(u64, Vec<u8>)> {
+    pub fn serialize(&self) -> anyhow::Result<(u64, Vec<u8>)> {
         let id = self.id();
         let serialized = bincode::serialize(&self)
             .map_err(|e| anyhow::anyhow!("Failed to serialize note: {e}"))?
