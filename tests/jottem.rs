@@ -45,7 +45,7 @@ fn test_find_note_by_title() {
         all: false,
     };
 
-    let result = jottem::find(&search);
+    let result = jottem::find_notes(&search);
 
     assert!(result.is_ok());
 }

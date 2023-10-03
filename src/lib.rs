@@ -9,11 +9,12 @@ use path::NotePath;
 
 pub mod cli;
 pub mod config;
-pub mod file;
-pub mod index;
-pub mod note;
+mod file;
+mod find;
+mod index;
+mod note;
 pub mod path;
-pub mod prompt;
+mod prompt;
 
 lazy_static! {
     // make this error better. probably with logging later
@@ -26,10 +27,10 @@ lazy_static! {
 ///
 /// After the editor is closed, we update the modified time on the note
 /// and then update the record in the index.
-pub fn edit(path: &str) -> anyhow::Result<()> {
+pub fn edit_note(path: &str) -> anyhow::Result<()> {
     let note = get_note(path, true)?;
 
-    open(&note.absolute_path)?;
+    open_note(&note.absolute_path)?;
 
     let mut note = INDEX.get(note.id())?.unwrap();
     note.modified = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
@@ -38,21 +39,21 @@ pub fn edit(path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-// TODO: refactor and document this
-pub fn find(args: &SearchArgs) -> anyhow::Result<()> {
+/// Collects a list of notes based on user-specified search parameters.
+///
+/// * `args` - Search parameters provided by the user. See [cli::SearchArgs]
+///
+/// The collected notes are displayed as an ASCII table with the relative
+/// path to the note and the last modified time.
+pub fn find_notes(args: &SearchArgs) -> anyhow::Result<()> {
     let notes = {
+        // still not happy with this, but haven't found a better way yet
         if let Some(path) = args.path.clone() {
-            let path = NotePath::parse(&path)?;
-
-            if path.has_parent() {
-                INDEX.find_by_path(&path)?
-            } else {
-                INDEX.find_by_title(&path.title())?
-            }
+            find::by_path(&path)?
         } else if !args.tags.is_empty() {
-            INDEX.find_by_tags(&args.tags)?
+            find::by_tags(&args.tags)?
         } else if args.all {
-            INDEX.get_all()?
+            find::all()?
         } else {
             Vec::new()
         }
@@ -68,7 +69,7 @@ pub fn find(args: &SearchArgs) -> anyhow::Result<()> {
 /// Deletes a note both from disk and the index.
 ///
 /// * `path` - raw input from the user such as `foo/bar`
-pub fn delete(path: &str) -> anyhow::Result<()> {
+pub fn delete_note(path: &str) -> anyhow::Result<()> {
     let path = NotePath::parse(path)?;
 
     let matches = INDEX.find_by_title(&path.title())?;
@@ -89,7 +90,7 @@ pub fn delete(path: &str) -> anyhow::Result<()> {
 }
 
 /// Triggers the appropriate tag management action.
-pub fn tag(command: cli::TagCommand) -> anyhow::Result<()> {
+pub fn manage_tags(command: cli::TagCommand) -> anyhow::Result<()> {
     match command {
         TagCommand::Add { path, tags } => add_tags(&path, &tags)?,
         TagCommand::Remove { path, tags } => remove_tags(&path, &tags)?,
@@ -127,10 +128,10 @@ fn remove_tags(path: &str, tags: &[String]) -> anyhow::Result<()> {
 }
 
 // TODO: refactor and document this
-pub fn rename(path: &str, new_title: &str) -> anyhow::Result<()> {
+pub fn rename_note(path: &str, new_title: &str) -> anyhow::Result<()> {
     let mut note = get_note(path, false)?;
 
-    let id = note.id();
+    let old_id = note.id();
 
     let old_path = NotePath::from_note(&note)?;
     let new_path = {
@@ -148,11 +149,11 @@ pub fn rename(path: &str, new_title: &str) -> anyhow::Result<()> {
     note.title = new_path.title();
 
     INDEX.insert(note)?;
-    INDEX.remove(id)?;
+    INDEX.remove(old_id)?;
 
     rename_file(&old_path, &new_path)?;
 
-    Ok(())
+    return Ok(());
 }
 
 // TODO: refactor and document this
@@ -180,7 +181,7 @@ pub fn move_note(path: &str, new_path: &str) -> anyhow::Result<()> {
 ///
 /// This is currently here for debugging purposes, but may serve
 /// as part of a backup/restore feature in the future.
-pub fn export() -> anyhow::Result<()> {
+pub fn export_index() -> anyhow::Result<()> {
     let notes = INDEX.get_all()?;
     let export = serde_json::to_string(&notes)?;
 
@@ -210,7 +211,7 @@ pub fn create_note(path: &NotePath, tags: &[String]) -> anyhow::Result<Note> {
 /// and change to the root notes directory. This enables some nice
 /// features from Marksman (see [`create_root_dir`]). After the editor
 /// is closed, we restore the original working directory.
-pub fn open(path: &str) -> anyhow::Result<()> {
+pub fn open_note(path: &str) -> anyhow::Result<()> {
     let editor = config::get_editor();
 
     let cwd = std::env::current_dir()?;

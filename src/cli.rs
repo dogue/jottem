@@ -101,6 +101,21 @@ pub enum TagCommand {
     },
 }
 
+/// Search parameters used for finding notes.
+///
+/// * `path` (`-p`, `--path`) - a typical path such as `foo/bar`
+/// * `tags` (`-t`, `--tags`) - a comma-separated list of tags
+/// * `all` (`-a`, `--all`) - takes no arguments, returns all notes
+///
+/// All three fields (flags) are mutually exclusive.
+///
+/// `path` requires a path or note title (such as `foo/bar` or `baz`)
+/// to be provided.
+///
+/// `tags` requires a comma-separated list of one or more tags to be
+/// provided.
+///
+/// `all` requires no arguments and returns all notes
 #[derive(Debug, Clone, Args)]
 #[group(required = true, multiple = false)]
 pub struct SearchArgs {
