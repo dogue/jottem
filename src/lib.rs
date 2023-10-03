@@ -47,7 +47,6 @@ pub fn edit_note(path: &str) -> anyhow::Result<()> {
 /// path to the note and the last modified time.
 pub fn find_notes(args: &SearchArgs) -> anyhow::Result<()> {
     let notes = {
-        // still not happy with this, but haven't found a better way yet
         if let Some(path) = args.path.clone() {
             find::by_path(&path)?
         } else if !args.tags.is_empty() {
@@ -70,23 +69,13 @@ pub fn find_notes(args: &SearchArgs) -> anyhow::Result<()> {
 ///
 /// * `path` - raw input from the user such as `foo/bar`
 pub fn delete_note(path: &str) -> anyhow::Result<()> {
-    let path = NotePath::parse(path)?;
+    let note = get_note(path, false)?;
+    let path = NotePath::from_note(&note)?;
 
-    let matches = INDEX.find_by_title(&path.title())?;
-
-    let note = match matches.len() {
-        1 => matches[0].clone(),
-        _ => {
-            let options = matches.iter().map(|n| n.relative_path.to_owned()).collect();
-            let selection = prompt::multiple_matches(&options)?;
-            matches[selection].clone()
-        }
-    };
-
-    delete_file(&NotePath::from_note(&note)?)?;
+    delete_file(&path)?;
     INDEX.remove(note.id())?;
 
-    return Ok(());
+    Ok(())
 }
 
 /// Triggers the appropriate tag management action.
@@ -96,7 +85,7 @@ pub fn manage_tags(command: cli::TagCommand) -> anyhow::Result<()> {
         TagCommand::Remove { path, tags } => remove_tags(&path, &tags)?,
     }
 
-    return Ok(());
+    Ok(())
 }
 
 /// Adds one or more tags to an existing note.
@@ -110,7 +99,7 @@ fn add_tags(path: &str, tags: &[String]) -> anyhow::Result<()> {
 
     INDEX.add_tags(id, tags)?;
 
-    return Ok(());
+    Ok(())
 }
 
 /// Removes one or more tags from an existing note.
@@ -127,33 +116,27 @@ fn remove_tags(path: &str, tags: &[String]) -> anyhow::Result<()> {
     Ok(())
 }
 
-// TODO: refactor and document this
+/// Renames a note (changes final path segment) in place.
+///
+/// * `path` - raw input from the user such as `foo/bar`
+/// * `new_title` - the new title for the note
+///
+/// This function renames the note both on disk and index,
+/// but does not change the relative path (except for the filename).
 pub fn rename_note(path: &str, new_title: &str) -> anyhow::Result<()> {
     let mut note = get_note(path, false)?;
-
     let old_id = note.id();
-
     let old_path = NotePath::from_note(&note)?;
-    let new_path = {
-        if old_path.has_parent() {
-            format!("{}/{}", old_path.relative_parent().unwrap(), new_title)
-        } else {
-            new_title.to_string()
-        }
-    };
 
-    let new_path = NotePath::parse(&new_path)?;
+    note.title = new_title.into();
+    let new_path = NotePath::from_note(&note)?;
 
-    note.relative_path = new_path.relative_path();
-    note.absolute_path = new_path.absolute_path_with_ext();
-    note.title = new_path.title();
+    rename_file(&old_path, &new_path)?;
 
     INDEX.insert(note)?;
     INDEX.remove(old_id)?;
 
-    rename_file(&old_path, &new_path)?;
-
-    return Ok(());
+    Ok(())
 }
 
 // TODO: refactor and document this
@@ -258,13 +241,17 @@ fn get_note(path: &str, create_if_empty: bool) -> anyhow::Result<Note> {
         }
         1 => matches[0].clone(),
         _ => {
-            let options = matches.iter().map(|n| n.relative_path.clone()).collect();
+            let options = matches
+                .iter()
+                .map(|n| n.relative_path.clone())
+                .collect::<Vec<String>>();
+
             let selection = prompt::multiple_matches(&options)?;
             matches[selection].clone()
         }
     };
 
-    return Ok(note);
+    Ok(note)
 }
 
 /// Creates the root note directory and initializes it as a git repository

@@ -6,7 +6,7 @@ fn setup() -> TempDir {
     let tmp = tempdir().expect("Failed to create temporary directory");
     std::env::set_var("JOTTEM_ROOT", tmp.path());
     std::env::set_var("JOTTEM_DB_PATH", tmp.path());
-    return tmp;
+    tmp
 }
 
 #[test]
@@ -26,7 +26,7 @@ fn test_create_note_with_tags() {
     let _tmp = setup();
 
     let path = NotePath::parse("test_note").unwrap();
-    let note = jottem::create_note(&path, &vec!["test_tag".into()]);
+    let note = jottem::create_note(&path, &["test_tag".into()]);
 
     assert!(note.is_ok_and(|n| n.tags.contains("test_tag")));
 }

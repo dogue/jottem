@@ -7,16 +7,16 @@ pub fn no_matches() -> anyhow::Result<bool> {
         .default(true)
         .interact()?;
 
-    return Ok(res);
+    Ok(res)
 }
 
 /// Prompts the user to choose a single note from multiple matching notes.
-pub fn multiple_matches(matches: &Vec<String>) -> anyhow::Result<usize> {
+pub fn multiple_matches(matches: &[String]) -> anyhow::Result<usize> {
     let selection = Select::with_theme(&ColorfulTheme::default())
         .with_prompt("Multiple notes found. Please choose one")
         .default(0)
-        .items(&matches)
+        .items(matches)
         .interact()?;
 
-    return Ok(selection);
+    Ok(selection)
 }

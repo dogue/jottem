@@ -68,7 +68,7 @@ pub fn rename_file(note_path: &NotePath, new_path: &NotePath) -> anyhow::Result<
 
 pub fn move_file(note_path: &NotePath, new_path: &NotePath) -> anyhow::Result<()> {
     if new_path.has_parent() {
-        create_parent_path(&new_path)?;
+        create_parent_path(new_path)?;
     }
 
     let old_path = note_path.absolute_path_with_ext();
@@ -125,7 +125,7 @@ mod test {
     fn setup() -> TempDir {
         let tmp = tempfile::tempdir().unwrap();
         std::env::set_var("JOTTEM_ROOT", tmp.path());
-        return tmp;
+        tmp
     }
 
     #[test]
