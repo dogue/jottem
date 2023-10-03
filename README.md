@@ -8,8 +8,6 @@ Jottem is the note manager I wished already existed. It is a simple and lightwei
 
 Jottem keeps your files in a folder known as the `$JOTTEM_ROOT` (see the Configuration section below). It also keeps an index (using RocksDB) of your notes for fast access (retrieving an absolute path rather than walking directories). Jottem uses your `$EDITOR` variable to open notes.
 
-*Please note that as of the time of this writing, you are looking at a very early version of jottem. There are still features to come and some existing ones may not be fully fleshed out at this point. I will do my best to keep this readme up to date as development progresses.*
-
 ## Installation
 
 Clone this repository and install with Cargo like so:
@@ -101,7 +99,7 @@ jottem t remove some_note list,of,tags
 
 ### Future commands
 
-Jottem currently displays a `rebuild` command. The rebuild command is not yet implemented but will be used later for rebuilding the index should you decide to move your root folder or otherwise need to resync the index with the note files on disk.
+While not implemented at this time, there are plans for a backup/restore feature for the index, as well as a feature to rebuild the index from the files on disk. This would lose metadata such as created/modified times and tags, but would serve as a last resort for recovering from a broken state.
 
 ## Configuration
 
