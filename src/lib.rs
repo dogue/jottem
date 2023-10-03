@@ -124,17 +124,29 @@ fn remove_tags(path: &str, tags: &[String]) -> anyhow::Result<()> {
 /// This function renames the note both on disk and index,
 /// but does not change the relative path (except for the filename).
 pub fn rename_note(path: &str, new_title: &str) -> anyhow::Result<()> {
+    let new_title = new_title.replace("/", "");
     let mut note = get_note(path, false)?;
-    let old_id = note.id();
+    let id = note.id();
+
     let old_path = NotePath::from_note(&note)?;
+    let new_path = {
+        if old_path.has_parent() {
+            format!("{}/{}", old_path.relative_parent().unwrap(), new_title)
+        } else {
+            new_title
+        }
+    };
 
-    note.title = new_title.into();
-    let new_path = NotePath::from_note(&note)?;
+    let new_path = NotePath::parse(&new_path)?;
 
-    rename_file(&old_path, &new_path)?;
+    note.relative_path = new_path.relative_path();
+    note.absolute_path = new_path.absolute_path_with_ext();
+    note.title = new_path.title();
 
     INDEX.insert(note)?;
-    INDEX.remove(old_id)?;
+    INDEX.remove(id)?;
+
+    rename_file(&old_path, &new_path)?;
 
     Ok(())
 }
