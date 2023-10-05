@@ -20,8 +20,11 @@ fn main() -> anyhow::Result<()> {
         Command::Find { args } => jottem::find_notes(&args)?,
         Command::Delete { path } => jottem::delete_note(&path)?,
         Command::Tag { subcommand } => jottem::manage_tags(subcommand)?,
-        Command::Rename { path, new_title } => jottem::rename_note(&path, &new_title)?,
-        Command::Move { path, new_path } => jottem::move_note(&path, &new_path)?,
+        Command::Move {
+            path,
+            new_path,
+            rename,
+        } => jottem::move_note(&path, &new_path, rename)?,
         Command::Export => jottem::export_index()?,
 
         #[cfg(feature = "nuke")]

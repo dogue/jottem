@@ -4,6 +4,7 @@ use rocksdb::{Options, DB};
 
 use crate::{config, note::Note, path::NotePath};
 
+#[derive(Debug)]
 pub struct Index {
     db: DB,
 }

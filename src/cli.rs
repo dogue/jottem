@@ -8,6 +8,7 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    /// Create a new note
     #[clap(name = "create", alias = "c", about = "[c]reate a new note")]
     Create {
         #[arg(help = "note title or relative path")]
@@ -23,39 +24,44 @@ pub enum Command {
         tags: Vec<String>,
     },
 
+    /// Edit an existing note
     #[clap(name = "edit", alias = "e", about = "[e]dit a note")]
     Edit {
         #[arg(help = "note title or relative path")]
         path: String,
     },
 
+    /// Search for notes
     #[clap(name = "find", alias = "f", about = "[f]ind a note")]
     Find {
         #[command(flatten)]
         args: SearchArgs,
     },
 
+    /// Delete a note
     #[clap(name = "delete", alias = "d", about = "[d]elete a note")]
     Delete {
         #[arg(help = "note title or relative path")]
         path: String,
     },
 
+    /// Manage tags on a note
     #[clap(name = "tag", alias = "t", about = "[t]ag management")]
     Tag {
         #[clap(subcommand)]
         subcommand: TagCommand,
     },
 
-    #[clap(name = "rename", alias = "r", about = "[r]ename a note")]
-    Rename {
-        #[arg(help = "note title or relative path")]
-        path: String,
+    // /// Rename a note
+    // #[clap(name = "rename", alias = "r", about = "[r]ename a note")]
+    // Rename {
+    //     #[arg(help = "note title or relative path")]
+    //     path: String,
 
-        #[arg(help = "new note title")]
-        new_title: String,
-    },
-
+    //     #[arg(help = "new note title")]
+    //     new_title: String,
+    // },
+    /// Move a note
     #[clap(name = "move", alias = "m", about = "[m]ove a note")]
     Move {
         #[arg(help = "note title or relative path")]
@@ -63,8 +69,17 @@ pub enum Command {
 
         #[arg(help = "new relative path")]
         new_path: String,
+
+        #[arg(
+            help = "rename the note in place without moving",
+            short,
+            long,
+            required = false
+        )]
+        rename: bool,
     },
 
+    /// Export notes index as JSON
     #[clap(
         name = "export",
         alias = "x",
@@ -72,6 +87,7 @@ pub enum Command {
     )]
     Export,
 
+    /// Deprecated. Will be removed Soon™️
     #[cfg(feature = "nuke")]
     #[clap(
         name = "nuke",

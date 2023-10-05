@@ -1,6 +1,6 @@
 fn default_root() -> String {
     if let Some(path) = dirs::data_dir() {
-        path.join("jottem").to_string_lossy().into_owned()
+        path.join("jottem").to_string_lossy().into()
     } else {
         eprintln!("Could not determine user data directory.");
         std::process::exit(1);
@@ -9,7 +9,7 @@ fn default_root() -> String {
 
 fn default_db() -> String {
     if let Some(path) = dirs::cache_dir() {
-        path.join("jottem").to_string_lossy().into_owned()
+        path.join("jottem").to_string_lossy().into()
     } else {
         eprintln!("Could not determine user cache directory.");
         std::process::exit(2);

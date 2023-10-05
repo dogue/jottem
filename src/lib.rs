@@ -3,23 +3,16 @@ use colored::Colorize;
 use comfy_table::{presets::ASCII_MARKDOWN, Cell, Table};
 use file::{delete_file, move_file, rename_file};
 use index::Index;
-use lazy_static::lazy_static;
 use note::Note;
 use path::NotePath;
 
 pub mod cli;
 pub mod config;
-mod file;
-mod find;
-mod index;
-mod note;
+pub mod file;
+pub mod index;
+pub mod note;
 pub mod path;
-mod prompt;
-
-lazy_static! {
-    // make this error better. probably with logging later
-    static ref INDEX: Index = Index::open().expect("Failed to open database");
-}
+pub mod prompt;
 
 /// Opens a note in the user's editor per the $EDITOR variable
 ///
@@ -33,7 +26,9 @@ pub fn edit_note(path: &str) -> anyhow::Result<()> {
     open_note(&note.absolute_path)?;
 
     note.modified = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-    INDEX.insert(&note)?;
+
+    let index = Index::open()?;
+    index.insert(&note)?;
 
     Ok(())
 }
@@ -45,14 +40,25 @@ pub fn edit_note(path: &str) -> anyhow::Result<()> {
 /// The collected notes are displayed as an ASCII table with the relative
 /// path to the note and the last modified time.
 pub fn find_notes(args: &SearchArgs) -> anyhow::Result<()> {
+    let index = Index::open()?;
+
     let notes = {
         if args.path.is_some() {
             let path = args.path.as_ref().unwrap();
-            find::by_path(path)?
+
+            let path: &str = path;
+            let path = NotePath::parse(path)?;
+
+            if path.has_parent() {
+                index.find_by_path(&path)?
+            } else {
+                index.find_by_title(&path.title)?
+            }
         } else if !args.tags.is_empty() {
-            find::by_tags(&args.tags)?
+            let tags: &[String] = &args.tags;
+            index.find_by_tags(tags)?
         } else if args.all {
-            find::all()?
+            index.get_all()?
         } else {
             println!("{}", "Found 0 matching notes".bright_red());
             return Ok(());
@@ -74,7 +80,9 @@ pub fn delete_note(path: &str) -> anyhow::Result<()> {
     let path = NotePath::from_note(&note)?;
 
     delete_file(&path)?;
-    INDEX.remove(note.id())?;
+
+    let index = Index::open()?;
+    index.remove(note.id())?;
 
     Ok(())
 }
@@ -98,7 +106,8 @@ fn add_tags(path: &str, tags: &[String]) -> anyhow::Result<()> {
 
     let id = note.id();
 
-    INDEX.add_tags(id, tags)?;
+    let index = Index::open()?;
+    index.add_tags(id, tags)?;
 
     Ok(())
 }
@@ -112,7 +121,8 @@ fn remove_tags(path: &str, tags: &[String]) -> anyhow::Result<()> {
 
     let id = note.id();
 
-    INDEX.remove_tags(id, tags)?;
+    let index = Index::open()?;
+    index.remove_tags(id, tags)?;
 
     Ok(())
 }
@@ -142,10 +152,11 @@ pub fn rename_note(path: &str, new_title: &str) -> anyhow::Result<()> {
 
     note.relative_path = new_path.relative_path();
     note.absolute_path = new_path.absolute_path_with_ext();
-    note.title = new_path.title();
+    note.title = new_path.title.to_string();
 
-    INDEX.insert(&note)?;
-    INDEX.remove(id)?;
+    let index = Index::open()?;
+    index.insert(&note)?;
+    index.remove(id)?;
 
     rename_file(&old_path, &new_path)?;
 
@@ -153,7 +164,12 @@ pub fn rename_note(path: &str, new_title: &str) -> anyhow::Result<()> {
 }
 
 // TODO: refactor and document this
-pub fn move_note(path: &str, new_path: &str) -> anyhow::Result<()> {
+pub fn move_note(path: &str, new_path: &str, rename: bool) -> anyhow::Result<()> {
+    if rename {
+        rename_note(path, new_path)?;
+        return Ok(());
+    }
+
     let mut note = get_note(path, false)?;
 
     let id = note.id();
@@ -163,12 +179,13 @@ pub fn move_note(path: &str, new_path: &str) -> anyhow::Result<()> {
 
     note.relative_path = new_path.relative_path();
     note.absolute_path = new_path.absolute_path_with_ext();
-    note.title = new_path.title();
+    note.title = new_path.title.clone();
 
     move_file(&old_path, &new_path)?;
 
-    INDEX.insert(&note)?;
-    INDEX.remove(id)?;
+    let index = Index::open()?;
+    index.insert(&note)?;
+    index.remove(id)?;
 
     Ok(())
 }
@@ -178,9 +195,10 @@ pub fn move_note(path: &str, new_path: &str) -> anyhow::Result<()> {
 /// This is currently here for debugging purposes, but may serve
 /// as part of a backup/restore feature in the future.
 pub fn export_index() -> anyhow::Result<()> {
-    let notes = INDEX.get_all()?;
-    let export = serde_json::to_string(&notes)?;
+    let index = Index::open()?;
+    let notes = index.get_all()?;
 
+    let export = serde_json::to_string(&notes)?;
     println!("{export}");
 
     Ok(())
@@ -194,7 +212,9 @@ pub fn create_note(path: &NotePath, tags: &[String]) -> anyhow::Result<Note> {
     let note = Note::new(path, tags);
 
     file::create_file(path)?;
-    INDEX.insert(&note)?;
+
+    let index = Index::open()?;
+    index.insert(&note)?;
 
     Ok(note)
 }
@@ -233,13 +253,14 @@ pub fn open_note(path: &str) -> anyhow::Result<()> {
 /// we notify the user that no notes were found and exit gracefully.
 ///
 /// Some actions such as deleting a note don't make sense to prompt for creation.
-fn get_note(path: &str, create_if_empty: bool) -> anyhow::Result<Note> {
+pub fn get_note(path: &str, create_if_empty: bool) -> anyhow::Result<Note> {
     let path = NotePath::parse(path)?;
+    let index = Index::open()?;
 
     let mut matches = if path.has_parent() {
-        INDEX.find_by_path(&path)?
+        index.find_by_path(&path)?
     } else {
-        INDEX.find_by_title(&path.title())?
+        index.find_by_title(&path.title)?
     };
 
     let note = match matches.len() {
@@ -316,7 +337,10 @@ fn build_table(notes: Vec<Note>) -> String {
 ///
 /// This will likely be removed in a future update.
 #[cfg(feature = "nuke")]
+#[deprecated(since = "0.1.2", note = "Just don't. :)")]
 pub fn nuke() -> anyhow::Result<()> {
+    use dialoguer::{theme::ColorfulTheme, Confirm};
+
     if !Confirm::with_theme(&ColorfulTheme::default())
         .with_prompt("THIS WILL DELETE ALL YOUR NOTES. ARE YOU SURE? THERE IS NO UNDO")
         .default(false)

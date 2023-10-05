@@ -22,7 +22,7 @@ impl Note {
     pub fn new(note_path: &NotePath, note_tags: &[String]) -> Self {
         let absolute_path = note_path.absolute_path_with_ext();
         let relative_path = note_path.relative_path();
-        let title = note_path.title();
+        let title = note_path.title.to_owned();
         let created = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         let modified = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         let tags = HashSet::new();
