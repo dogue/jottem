@@ -24,6 +24,12 @@ Or install from Crates.io:
 cargo install jottem
 ```
 
+Or install via the Arch User Repository (pre-built binary):
+
+```
+<your AUR tool of choice> -S jottem-bin
+```
+
 ## Usage
 
 See [the wiki](https://github.com/dogue/jottem/wiki) for a more detailed explanation of subcommands and options.
