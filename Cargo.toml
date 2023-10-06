@@ -1,7 +1,8 @@
 [package]
 name = "jottem"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
+authors = ["dogue"]
 license-file = "LICENSE"
 description = "A lightweight CLI manager for your markdown notes."
 homepage = "https://github.com/dogue/jottem"
