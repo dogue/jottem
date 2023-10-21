@@ -16,7 +16,7 @@ fn main() -> anyhow::Result<()> {
             let note = jottem::create_note(&path, &tags)?;
             jottem::open_note(&note.absolute_path)?;
         }
-        Command::Edit { path } => jottem::edit_note(&path)?,
+        Command::Edit { path } => jottem::edit_note(path)?,
         Command::Find { args } => jottem::find_notes(&args)?,
         Command::Delete { path } => jottem::delete_note(&path)?,
         Command::Tag { subcommand } => jottem::manage_tags(subcommand)?,

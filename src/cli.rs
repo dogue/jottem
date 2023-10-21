@@ -28,7 +28,7 @@ pub enum Command {
     #[clap(name = "edit", alias = "e", about = "[e]dit a note")]
     Edit {
         #[arg(help = "note title or relative path")]
-        path: String,
+        path: Option<String>,
     },
 
     /// Search for notes

@@ -20,8 +20,20 @@ pub mod prompt;
 ///
 /// After the editor is closed, we update the modified time on the note
 /// and then update the record in the index.
-pub fn edit_note(path: &str) -> anyhow::Result<()> {
-    let mut note = get_note(path, true)?;
+pub fn edit_note(path: Option<String>) -> anyhow::Result<()> {
+    let mut note = if path.is_none() {
+        let mut notes = Index::open()?.get_all()?;
+        let options = notes
+            .iter()
+            .map(|n| n.relative_path.as_str())
+            .collect::<Vec<&str>>();
+
+        let selection = prompt::select_fuzzy(&options)?;
+        notes.swap_remove(selection)
+    } else {
+        let path = path.unwrap();
+        get_note(&path, true)?
+    };
 
     open_note(&note.absolute_path)?;
 

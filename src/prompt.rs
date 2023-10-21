@@ -1,4 +1,4 @@
-use dialoguer::{theme::ColorfulTheme, Confirm, Select};
+use dialoguer::{theme::ColorfulTheme, Confirm, FuzzySelect, Select};
 
 /// Prompts the user to ask if they would like to create a new note.
 pub fn no_matches() -> anyhow::Result<bool> {
@@ -16,6 +16,15 @@ pub fn multiple_matches(matches: &[&str]) -> anyhow::Result<usize> {
         .with_prompt("Multiple notes found. Please choose one")
         .default(0)
         .items(matches)
+        .interact()?;
+
+    Ok(selection)
+}
+
+/// Prompts the user to choose a note with fuzzy finding
+pub fn select_fuzzy(notes: &[&str]) -> anyhow::Result<usize> {
+    let selection = FuzzySelect::with_theme(&ColorfulTheme::default())
+        .items(notes)
         .interact()?;
 
     Ok(selection)
