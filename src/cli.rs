@@ -86,14 +86,6 @@ pub enum Command {
         about = "e[x]port the notes index as JSON"
     )]
     Export,
-
-    /// Deprecated. Will be removed Soon™️
-    #[cfg(feature = "nuke")]
-    #[clap(
-        name = "nuke",
-        about = "removes all notes and the index (intended for development)"
-    )]
-    Nuke,
 }
 
 #[derive(Debug, Subcommand)]

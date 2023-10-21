@@ -342,29 +342,3 @@ fn build_table(notes: Vec<Note>) -> String {
 
     table.to_string()
 }
-
-/// Removes all note files, the root note directory, and the database.
-/// Previously used for development. This command is gated behind the `nuke`
-/// feature flag.
-///
-/// This will likely be removed in a future update.
-#[cfg(feature = "nuke")]
-#[deprecated(since = "0.1.2", note = "Just don't. :)")]
-pub fn nuke() -> anyhow::Result<()> {
-    use dialoguer::{theme::ColorfulTheme, Confirm};
-
-    if !Confirm::with_theme(&ColorfulTheme::default())
-        .with_prompt("THIS WILL DELETE ALL YOUR NOTES. ARE YOU SURE? THERE IS NO UNDO")
-        .default(false)
-        .wait_for_newline(true)
-        .interact()?
-    {
-        std::process::exit(0);
-    }
-
-    std::fs::remove_dir_all(config::get_root())?;
-    std::fs::remove_dir_all(config::get_db_path())?;
-    std::fs::create_dir(config::get_root())?;
-
-    Ok(())
-}

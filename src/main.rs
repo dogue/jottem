@@ -26,9 +26,6 @@ fn main() -> anyhow::Result<()> {
             rename,
         } => jottem::move_note(&path, &new_path, rename)?,
         Command::Export => jottem::export_index()?,
-
-        #[cfg(feature = "nuke")]
-        Command::Nuke => jottem::nuke()?,
     };
 
     Ok(())
