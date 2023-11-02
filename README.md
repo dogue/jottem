@@ -1,6 +1,4 @@
-# Jottem
-
-A lean, low friction terminal app for managing markdown notes.
+<p align="center"><img src="jottem.png" height="300" /><br />A lean, low friction terminal app for managing markdown notes.</p>
 
 ## Installation
 
