@@ -1,6 +1,5 @@
 use cli::{SearchArgs, TagCommand};
 use colored::Colorize;
-use file::{delete_file, move_file, rename_file};
 use index::Index;
 use path::NotePath;
 
@@ -91,7 +90,7 @@ pub fn delete_note(path: &str) -> anyhow::Result<()> {
     let note = utils::get_note(path, false)?;
     let path = NotePath::from_note(&note)?;
 
-    delete_file(&path)?;
+    file::delete_file(&path)?;
 
     let index = Index::open()?;
     index.remove(note.id())?;
@@ -140,7 +139,7 @@ pub fn rename_note(path: &str, new_title: &str) -> anyhow::Result<()> {
     index.insert(&note)?;
     index.remove(id)?;
 
-    rename_file(&old_path, &new_path)?;
+    file::rename_file(&old_path, &new_path)?;
 
     Ok(())
 }
@@ -163,7 +162,7 @@ pub fn move_note(path: &str, new_path: &str, rename: bool) -> anyhow::Result<()>
     note.absolute_path = new_path.absolute_path_with_ext();
     note.title = new_path.title.clone();
 
-    move_file(&old_path, &new_path)?;
+    file::move_file(&old_path, &new_path)?;
 
     let index = Index::open()?;
     index.insert(&note)?;
