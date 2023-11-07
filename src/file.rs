@@ -82,9 +82,7 @@ pub fn move_file(note_path: &NotePath, new_path: &NotePath) -> anyhow::Result<()
     Ok(())
 }
 
-// TODO: LSP claims unused. Remove it.
-#[allow(dead_code)]
-pub fn file_exists(note_path: &NotePath) -> bool {
+pub fn exists(note_path: &NotePath) -> bool {
     let path = note_path.absolute_path_with_ext();
     let path = Path::new(&path);
 
