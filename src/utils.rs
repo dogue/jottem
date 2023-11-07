@@ -1,3 +1,8 @@
+use std::{
+    collections::hash_map::DefaultHasher,
+    hash::{Hash, Hasher},
+};
+
 use colored::Colorize;
 use comfy_table::{presets::ASCII_MARKDOWN, Cell, Table};
 
@@ -113,19 +118,31 @@ pub fn create_note(path: &NotePath, tags: &[String]) -> anyhow::Result<Note> {
 ///
 /// * `path` - absolute disk path (with `.md` extension) to a note
 ///
+/// Returns a `true` if the file changed on disk.
+///
 /// Before opening the file, we store the current working directory
 /// and change to the root notes directory. This enables some nice
 /// features from Marksman (see [`create_root_dir`]). After the editor
 /// is closed, we restore the original working directory.
-pub fn open_note(path: &str) -> anyhow::Result<()> {
+pub fn open_note(path: &str) -> anyhow::Result<bool> {
     let editor = config::get_editor();
 
     let cwd = std::env::current_dir()?;
     std::env::set_current_dir(config::get_root())?;
 
+    let pre_hash = hash_note(path)?;
     std::process::Command::new(editor).arg(path).status()?;
+    let post_hash = hash_note(path)?;
 
     std::env::set_current_dir(cwd)?;
 
-    Ok(())
+    Ok(pre_hash != post_hash)
+}
+
+fn hash_note(path: &str) -> anyhow::Result<u64> {
+    let contents = std::fs::read_to_string(path)?;
+    let mut hasher = DefaultHasher::new();
+    contents.hash(&mut hasher);
+
+    Ok(hasher.finish())
 }

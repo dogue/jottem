@@ -34,12 +34,12 @@ pub fn edit_note(path: Option<String>) -> anyhow::Result<()> {
         utils::get_note(&path, true)?
     };
 
-    utils::open_note(&note.absolute_path)?;
+    if utils::open_note(&note.absolute_path)? {
+        note.modified = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
 
-    note.modified = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-
-    let index = Index::open()?;
-    index.insert(&note)?;
+        let index = Index::open()?;
+        index.insert(&note)?;
+    }
 
     Ok(())
 }
