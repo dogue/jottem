@@ -1,6 +1,4 @@
-# Jottem
-
-A lean, low friction terminal app for managing markdown notes.
+<p align="center"><img src="jottem.png" height="150" /><br />A lean, low friction terminal app for managing markdown notes.</p>
 
 ## Installation
 
@@ -54,3 +52,7 @@ You can find a more in-depth explanation of the available commands and their opt
 - **Flexible:** Optionally use subdirectories to organize your notes.
 - **Tagging:** Categorize notes easily with a simple tagging system.
 - **Agnostic:** Jottem uses your `$EDITOR` variable to edit notes in your preferred app.
+
+## License
+
+[MIT](https://github.com/dogue/jottem/blob/main/LICENSE)
