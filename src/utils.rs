@@ -74,6 +74,9 @@ pub fn get_note(path: &str, create_if_empty: bool) -> anyhow::Result<Note> {
         index.find_by_title(&path.title)?
     };
 
+    // HOTFIX: #3
+    drop(index);
+
     let note = match matches.len() {
         0 => {
             if create_if_empty && prompt::no_matches()? {
