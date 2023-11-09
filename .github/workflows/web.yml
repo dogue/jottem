@@ -30,9 +30,9 @@ on:
   # If you only want docs to update with releases, disable this, or change it to
   # a "release" branch. You can, of course, also manually trigger a workflow run
   # when you want the docs to update.
-  push:
-    branches:
-      - main
+  #push:
+    #branches:
+      #- main
 
   # Whenever a workflow called "Release" completes, update the docs!
   #
