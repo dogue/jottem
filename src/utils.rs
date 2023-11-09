@@ -6,7 +6,7 @@ use std::{
 use colored::Colorize;
 use comfy_table::{presets::ASCII_MARKDOWN, Cell, Table};
 
-use crate::{config, file, index::Index, note::Note, path::NotePath, prompt};
+use crate::{config, file, index::INDEX, note::Note, path::NotePath, prompt};
 
 /// Creates the root note directory and initializes it as a git repository
 ///
@@ -66,16 +66,15 @@ pub fn build_table(notes: Vec<Note>) -> String {
 /// Some actions such as deleting a note don't make sense to prompt for creation.
 pub fn get_note(path: &str, create_if_empty: bool) -> anyhow::Result<Note> {
     let path = NotePath::parse(path)?;
-    let index = Index::open()?;
 
     let mut matches = if path.has_parent() {
-        index.find_by_path(&path)?
+        INDEX.find_by_path(&path)?
     } else {
-        index.find_by_title(&path.title)?
+        INDEX.find_by_title(&path.title)?
     };
 
     // HOTFIX: #3
-    drop(index);
+    //drop(index);
 
     let note = match matches.len() {
         0 => {
@@ -111,8 +110,7 @@ pub fn create_note(path: &NotePath, tags: &[String]) -> anyhow::Result<Note> {
 
     file::create_file(path)?;
 
-    let index = Index::open()?;
-    index.insert(&note)?;
+    INDEX.insert(&note)?;
 
     Ok(note)
 }

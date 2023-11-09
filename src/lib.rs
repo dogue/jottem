@@ -1,6 +1,6 @@
 use cli::{SearchArgs, TagCommand};
 use colored::Colorize;
-use index::Index;
+use index::INDEX;
 use path::NotePath;
 
 pub mod cli;
@@ -21,7 +21,7 @@ pub mod utils;
 /// and then update the record in the index.
 pub fn edit_note(path: Option<String>) -> anyhow::Result<()> {
     let mut note = if path.is_none() {
-        let mut notes = Index::open()?.get_all()?;
+        let mut notes = INDEX.get_all()?;
         let options = notes
             .iter()
             .map(|n| n.relative_path.as_str())
@@ -37,8 +37,7 @@ pub fn edit_note(path: Option<String>) -> anyhow::Result<()> {
     if utils::open_note(&note.absolute_path)? {
         note.modified = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
 
-        let index = Index::open()?;
-        index.insert(&note)?;
+        INDEX.insert(&note)?;
     }
 
     Ok(())
@@ -51,8 +50,6 @@ pub fn edit_note(path: Option<String>) -> anyhow::Result<()> {
 /// The collected notes are displayed as an ASCII table with the relative
 /// path to the note and the last modified time.
 pub fn find_notes(args: &SearchArgs) -> anyhow::Result<()> {
-    let index = Index::open()?;
-
     let notes = {
         if args.path.is_some() {
             let path = args.path.as_ref().unwrap();
@@ -61,15 +58,15 @@ pub fn find_notes(args: &SearchArgs) -> anyhow::Result<()> {
             let path = NotePath::parse(path)?;
 
             if path.has_parent() {
-                index.find_by_path(&path)?
+                INDEX.find_by_path(&path)?
             } else {
-                index.find_by_title(&path.title)?
+                INDEX.find_by_title(&path.title)?
             }
         } else if !args.tags.is_empty() {
             let tags: &[String] = &args.tags;
-            index.find_by_tags(tags)?
+            INDEX.find_by_tags(tags)?
         } else if args.all {
-            index.get_all()?
+            INDEX.get_all()?
         } else {
             println!("{}", "Found 0 matching notes".bright_red());
             return Ok(());
@@ -92,8 +89,7 @@ pub fn delete_note(path: &str) -> anyhow::Result<()> {
 
     file::delete_file(&path)?;
 
-    let index = Index::open()?;
-    index.remove(note.id())?;
+    INDEX.remove(note.id())?;
 
     Ok(())
 }
@@ -135,9 +131,8 @@ pub fn rename_note(path: &str, new_title: &str) -> anyhow::Result<()> {
     note.absolute_path = new_path.absolute_path_with_ext();
     note.title = new_path.title.to_string();
 
-    let index = Index::open()?;
-    index.insert(&note)?;
-    index.remove(id)?;
+    INDEX.insert(&note)?;
+    INDEX.remove(id)?;
 
     file::rename_file(&old_path, &new_path)?;
 
@@ -164,9 +159,7 @@ pub fn move_note(path: &str, new_path: &str, rename: bool) -> anyhow::Result<()>
 
     file::move_file(&old_path, &new_path)?;
 
-    let index = Index::open()?;
-    index.insert(&note)?;
-    index.remove(id)?;
+    INDEX.remove(id)?;
 
     Ok(())
 }
@@ -176,8 +169,7 @@ pub fn move_note(path: &str, new_path: &str, rename: bool) -> anyhow::Result<()>
 /// This is currently here for debugging purposes, but may serve
 /// as part of a backup/restore feature in the future.
 pub fn export_index() -> anyhow::Result<()> {
-    let index = Index::open()?;
-    let notes = index.get_all()?;
+    let notes = INDEX.get_all()?;
 
     let export = serde_json::to_string(&notes)?;
     println!("{export}");
