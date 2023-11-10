@@ -1,8 +1,12 @@
+use lazy_static::lazy_static;
+use rocksdb::{Options, DB};
 use std::{collections::HashSet, path::Path};
 
-use rocksdb::{Options, DB};
-
 use crate::{config, note::Note, path::NotePath};
+
+lazy_static! {
+    pub static ref INDEX: Index = Index::open().unwrap();
+}
 
 #[derive(Debug)]
 pub struct Index {
