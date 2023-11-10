@@ -9,20 +9,20 @@ pub struct Cli {
 #[derive(Debug, Subcommand)]
 pub enum Command {
     /// Create a new note
-    #[clap(name = "create", alias = "c", about = "[c]reate a new note")]
-    Create {
-        #[arg(help = "note title or relative path")]
-        path: String,
+    // #[clap(name = "create", alias = "c", about = "[c]reate a new note")]
+    // Create {
+    //     #[arg(help = "note title or relative path")]
+    //     path: String,
 
-        #[arg(
-            short,
-            long,
-            required = false,
-            value_delimiter = ',',
-            help = "a list of tags to add to the note"
-        )]
-        tags: Vec<String>,
-    },
+    //     #[arg(
+    //         short,
+    //         long,
+    //         required = false,
+    //         value_delimiter = ',',
+    //         help = "a list of tags to add to the note"
+    //     )]
+    //     tags: Vec<String>,
+    // },
 
     /// Edit an existing note
     #[clap(name = "edit", alias = "e", about = "[e]dit a note")]

@@ -116,7 +116,7 @@ pub fn manage_tags(command: cli::TagCommand) -> anyhow::Result<()> {
 /// This function renames the note both on disk and index,
 /// but does not change the relative path (except for the filename).
 pub fn rename_note(path: &str, new_title: &str) -> anyhow::Result<()> {
-    let new_title = new_title.replace("/", "");
+    let new_title = new_title.replace('/', "");
     let mut note = utils::get_note(path, false)?;
     let id = note.id();
 

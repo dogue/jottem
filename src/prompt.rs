@@ -7,7 +7,7 @@ pub fn no_matches() -> anyhow::Result<bool> {
         .default(true)
         .interact_opt()?;
 
-    if !res.is_some() {
+    if res.is_none() {
         std::process::exit(0);
     }
 
@@ -22,7 +22,7 @@ pub fn multiple_matches(matches: &[&str]) -> anyhow::Result<usize> {
         .items(matches)
         .interact_opt()?;
 
-    if !selection.is_some() {
+    if selection.is_none() {
         std::process::exit(0);
     }
 
@@ -35,7 +35,7 @@ pub fn select_fuzzy(notes: &[&str]) -> anyhow::Result<usize> {
         .items(notes)
         .interact_opt()?;
 
-    if !selection.is_some() {
+    if selection.is_none() {
         // user cancelled
         std::process::exit(0);
     }
