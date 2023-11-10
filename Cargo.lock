@@ -570,7 +570,6 @@ dependencies = [
  "comfy-table",
  "dialoguer",
  "dirs",
- "lazy_static",
  "rocksdb",
  "serde",
  "serde_json",

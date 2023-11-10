@@ -1,4 +1,4 @@
-use crate::{index::INDEX, utils};
+use crate::{index::Index, utils};
 
 /// Adds one or more tags to an existing note.
 ///
@@ -9,7 +9,8 @@ pub fn add_tags(path: &str, tags: &[String]) -> anyhow::Result<()> {
 
     let id = note.id();
 
-    INDEX.add_tags(id, tags)?;
+    let index = Index::open()?;
+    index.add_tags(id, tags)?;
 
     Ok(())
 }
@@ -23,7 +24,8 @@ pub fn remove_tags(path: &str, tags: &[String]) -> anyhow::Result<()> {
 
     let id = note.id();
 
-    INDEX.remove_tags(id, tags)?;
+    let index = Index::open()?;
+    index.remove_tags(id, tags)?;
 
     Ok(())
 }
