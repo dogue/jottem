@@ -1,19 +1,8 @@
 use std::{collections::HashSet, path::Path};
 
-use lazy_static::lazy_static;
 use rocksdb::{Options, DB};
 
 use crate::{config, note::Note, path::NotePath};
-
-lazy_static! {
-    pub static ref INDEX: Index = match Index::open() {
-        Ok(index) => index,
-        Err(e) => {
-            eprintln!("Failed to open database: {e}");
-            std::process::exit(1);
-        }
-    };
-}
 
 #[derive(Debug)]
 pub struct Index {
