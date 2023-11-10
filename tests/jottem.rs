@@ -1,4 +1,4 @@
-use jottem::{cli::SearchArgs, path::NotePath};
+use jottem::*;
 use serial_test::serial;
 use tempfile::{tempdir, TempDir};
 
@@ -6,18 +6,28 @@ fn setup() -> TempDir {
     let tmp = tempdir().expect("Failed to create temporary directory");
     std::env::set_var("JOTTEM_ROOT", tmp.path());
     std::env::set_var("JOTTEM_DB_PATH", tmp.path());
+    std::env::set_var("EDITOR", "true");
     tmp
 }
+
+// #[test]
+// #[serial]
+// fn test_create_note() {
+//     let _tmp = setup();
+
+//     let path = NotePath::parse("test_note").unwrap();
+//     let note = jottem::utils::create_note(&path, &Vec::new());
+
+//     assert!(note.is_ok_and(|n| n.title == "test_note"));
+// }
 
 #[test]
 #[serial]
 fn test_create_note() {
     let _tmp = setup();
 
-    let path = NotePath::parse("test_note").unwrap();
-    let note = jottem::utils::create_note(&path, &Vec::new());
-
-    assert!(note.is_ok_and(|n| n.title == "test_note"));
+    let input = "foo";
+    jottem::
 }
 
 #[test]
