@@ -16,12 +16,14 @@ use crate::{config, file, index::Index, note::Note, path::NotePath, prompt};
 pub fn create_root_dir() -> anyhow::Result<()> {
     std::fs::create_dir_all(config::get_root())?;
 
-    let cwd = std::env::current_dir()?;
-    std::env::set_current_dir(config::get_root())?;
+    if has_git() {
+        let cwd = std::env::current_dir()?;
+        std::env::set_current_dir(config::get_root())?;
 
-    _ = std::process::Command::new("git").arg("init").output()?;
+        _ = std::process::Command::new("git").arg("init").output()?;
 
-    std::env::set_current_dir(cwd)?;
+        std::env::set_current_dir(cwd)?;
+    }
 
     Ok(())
 }
@@ -143,4 +145,8 @@ fn hash_note(path: &str) -> anyhow::Result<u64> {
     contents.hash(&mut hasher);
 
     Ok(hasher.finish())
+}
+
+fn has_git() -> bool {
+    which::which("git").is_ok()
 }
