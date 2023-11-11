@@ -204,26 +204,7 @@ mod test {
 
     #[test]
     #[serial]
-    fn test_create_note_with_title() {
-        let tmp = setup();
-        let tests = ["foo", "bar/baz", "far/boo/faz"];
-
-        for test in tests {
-            let input = test;
-            let abs_path = Path::new(tmp.path()).join(format!("{input}.md"));
-            dbg!(&abs_path);
-
-            let creation = edit_note(Some(input.to_string()));
-            assert!(creation.is_ok());
-
-            let exists = std::fs::File::open(abs_path);
-            assert!(exists.is_ok());
-        }
-    }
-
-    #[test]
-    #[serial]
-    fn test_edit_note_with_title() {
+    fn test_create_note() {
         let tmp = setup();
         let tests = ["foo", "bar/baz", "far/boo/faz"];
 
