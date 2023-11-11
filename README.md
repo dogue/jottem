@@ -2,37 +2,31 @@ A lean, low friction terminal app for managing markdown notes.
 
 ## Installation
 
-### With Cargo via Crates.io
-
-If you have Rust installed, Jottem can be installed directly from [Crates.io](https://crates.io/crates/jottem)
-
 ```
-cargo install jottem
-```
+# from crates.io
+cargo install --locked jottem
 
-### Build locally
-
-If you wish, you can build Jottem yourself
-
-```
-git clone https://github.com/dogue/jottem.git
+# from git
+git clone https://github.com/dogue/jottem
 cd jottem
 cargo install --path .
-```
 
-### Arch User Repository
-
-Jottem is also available in the AUR with the `jottem-bin` package
-
-```
+# from arch user repo
 yay -S jottem-bin
 ```
 
+### Optional Dependencies
+
+- [`git`](https://git-scm.com/)
+- [`marksman`](https://github.com/artempyanykh/marksman)
+
 ## Quick Start
 
+You can find a more in-depth explanation of the available commands and their options in [the wiki](https://github.com/dogue/jottem/wiki).
+
 ```
-# create a note
-jottem create my_note
+# create a note (if it doesn't exist)
+jottem edit my_note
 
 # edit a note
 jottem edit my_note
@@ -43,8 +37,6 @@ jottem delete my_note
 # find a note
 jottem find --all
 ```
-
-You can find a more in-depth explanation of the available commands and their options in [the wiki](https://github.com/dogue/jottem/wiki).
 
 ## Key Features
 
