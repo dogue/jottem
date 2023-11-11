@@ -2,6 +2,10 @@ use dialoguer::{theme::ColorfulTheme, Confirm, FuzzySelect, Select};
 
 /// Prompts the user to ask if they would like to create a new note.
 pub fn no_matches() -> anyhow::Result<bool> {
+    if cfg!(test) {
+        return Ok(true);
+    }
+
     let res = Confirm::with_theme(&ColorfulTheme::default())
         .with_prompt("No note found with that name. Would you like to create it now?")
         .default(true)

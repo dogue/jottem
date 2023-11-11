@@ -9,8 +9,7 @@ pub fn add_tags(path: &str, tags: &[String]) -> anyhow::Result<()> {
 
     let id = note.id();
 
-    let index = Index::open()?;
-    index.add_tags(id, tags)?;
+    Index::add_tags(id, tags)?;
 
     Ok(())
 }
@@ -24,8 +23,7 @@ pub fn remove_tags(path: &str, tags: &[String]) -> anyhow::Result<()> {
 
     let id = note.id();
 
-    let index = Index::open()?;
-    index.remove_tags(id, tags)?;
+    Index::remove_tags(id, tags)?;
 
     Ok(())
 }

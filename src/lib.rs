@@ -1,6 +1,6 @@
 use cli::{SearchArgs, TagCommand};
 use colored::Colorize;
-use index::INDEX;
+use index::Index;
 use path::NotePath;
 
 pub mod cli;
@@ -21,7 +21,7 @@ pub mod utils;
 /// and then update the record in the index.
 pub fn edit_note(path: Option<String>) -> anyhow::Result<()> {
     let mut note = if path.is_none() {
-        let mut notes = INDEX.get_all()?;
+        let mut notes = Index::get_all()?;
         let options = notes
             .iter()
             .map(|n| n.relative_path.as_str())
@@ -37,7 +37,7 @@ pub fn edit_note(path: Option<String>) -> anyhow::Result<()> {
     if utils::open_note(&note.absolute_path)? {
         note.modified = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
 
-        INDEX.insert(&note)?;
+        Index::insert(&note)?;
     }
 
     Ok(())
@@ -58,15 +58,15 @@ pub fn find_notes(args: &SearchArgs) -> anyhow::Result<()> {
             let path = NotePath::parse(path)?;
 
             if path.has_parent() {
-                INDEX.find_by_path(&path)?
+                Index::find_by_path(&path)?
             } else {
-                INDEX.find_by_title(&path.title)?
+                Index::find_by_title(&path.title)?
             }
         } else if !args.tags.is_empty() {
             let tags: &[String] = &args.tags;
-            INDEX.find_by_tags(tags)?
+            Index::find_by_tags(tags)?
         } else if args.all {
-            INDEX.get_all()?
+            Index::get_all()?
         } else {
             println!("{}", "Found 0 matching notes".bright_red());
             return Ok(());
@@ -89,7 +89,7 @@ pub fn delete_note(path: &str) -> anyhow::Result<()> {
 
     file::delete_file(&path)?;
 
-    INDEX.remove(note.id())?;
+    Index::remove(note.id())?;
 
     Ok(())
 }
@@ -131,8 +131,8 @@ pub fn rename_note(path: &str, new_title: &str) -> anyhow::Result<()> {
     note.absolute_path = new_path.absolute_path_with_ext();
     note.title = new_path.title.to_string();
 
-    INDEX.insert(&note)?;
-    INDEX.remove(id)?;
+    Index::insert(&note)?;
+    Index::remove(id)?;
 
     file::rename_file(&old_path, &new_path)?;
 
@@ -159,8 +159,8 @@ pub fn move_note(path: &str, new_path: &str, rename: bool) -> anyhow::Result<()>
 
     file::move_file(&old_path, &new_path)?;
 
-    INDEX.insert(&note)?;
-    INDEX.remove(id)?;
+    Index::insert(&note)?;
+    Index::remove(id)?;
 
     Ok(())
 }
@@ -170,10 +170,73 @@ pub fn move_note(path: &str, new_path: &str, rename: bool) -> anyhow::Result<()>
 /// This is currently here for debugging purposes, but may serve
 /// as part of a backup/restore feature in the future.
 pub fn export_index() -> anyhow::Result<()> {
-    let notes = INDEX.get_all()?;
+    let notes = Index::get_all()?;
 
     let export = serde_json::to_string(&notes)?;
     println!("{export}");
 
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    /*! All tests must be marked with the `#[serial]` attribute.
+        This prevents parallel tests from clobbering each other's
+        temporary env. Each test gets an isolated, randomized
+        tempdir. Use `let _tmp = setup();` to keep the tempdir
+        until the test completes. Cleanup is automatic once
+        `_tmp` is dropped.
+    */
+
+    use serial_test::serial;
+    use std::path::Path;
+    use tempfile::{tempdir, TempDir};
+
+    use super::*;
+
+    fn setup() -> TempDir {
+        let tmp = tempdir().expect("Failed to create temporary directory");
+        std::env::set_var("JOTTEM_ROOT", tmp.path());
+        std::env::set_var("JOTTEM_DB_PATH", tmp.path());
+        std::env::set_var("EDITOR", "true"); // successfully does nothing
+        tmp
+    }
+
+    #[test]
+    #[serial]
+    fn test_create_note_with_title() {
+        let tmp = setup();
+        let tests = ["foo", "bar/baz", "far/boo/faz"];
+
+        for test in tests {
+            let input = test;
+            let abs_path = Path::new(tmp.path()).join(format!("{input}.md"));
+            dbg!(&abs_path);
+
+            let creation = edit_note(Some(input.to_string()));
+            assert!(creation.is_ok());
+
+            let exists = std::fs::File::open(abs_path);
+            assert!(exists.is_ok());
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn test_edit_note_with_title() {
+        let tmp = setup();
+        let tests = ["foo", "bar/baz", "far/boo/faz"];
+
+        for test in tests {
+            let input = test;
+            let abs_path = Path::new(tmp.path()).join(format!("{input}.md"));
+            dbg!(&abs_path);
+
+            let creation = edit_note(Some(input.to_string()));
+            assert!(creation.is_ok());
+
+            let exists = std::fs::File::open(abs_path);
+            assert!(exists.is_ok());
+        }
+    }
 }
